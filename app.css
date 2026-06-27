@@ -1,0 +1,582 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-image: url(../grass.jpeg);
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* ===== LOADING PAGE ===== */
+.loading-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease-out;
+}
+
+.loading-page.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-container {
+  text-align: center;
+  color: white;
+}
+
+.loader {
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loader-container h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.loader-container p {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* ===== APP STRUCTURE ===== */
+.main-app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1000;
+  transition: opacity 0.5s ease-out;
+}
+
+.main-app.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===== TAB NAVIGATION ===== */
+.app-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn.active {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+/* ===== TAB CONTENT ===== */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== TODO CONTAINER ===== */
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.container p {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.todo-con {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.todo,
+.date,
+.priority {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  color: black;
+  transition: all 0.3s;
+}
+
+.todo {
+  flex: 1.5;
+  min-width: 150px;
+}
+
+.date {
+  flex: 1;
+  min-width: 140px;
+}
+
+.priority {
+  flex: 0.8;
+  min-width: 110px;
+  cursor: pointer;
+}
+
+.todo:focus,
+.date:focus,
+.priority:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+  background: white;
+}
+
+.add {
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s;
+  min-width: 100px;
+}
+
+.add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.add:active {
+  transform: scale(0.98);
+}
+
+.todo-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 5px solid #667eea;
+  transition: all 0.3s;
+}
+
+.todo-item:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.priority-high {
+  border-left-color: #ff4444;
+  background: linear-gradient(to right, rgba(255, 68, 68, 0.1), #f9f9f9);
+}
+
+.priority-medium {
+  border-left-color: #ffaa00;
+  background: linear-gradient(to right, rgba(255, 170, 0, 0.1), #f9f9f9);
+}
+
+.priority-low {
+  border-left-color: #44aa44;
+  background: linear-gradient(to right, rgba(68, 170, 68, 0.1), #f9f9f9);
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
+}
+
+.priority-badge.high { background: #ff4444; }
+.priority-badge.medium { background: #ffaa00; }
+.priority-badge.low { background: #44aa44; }
+
+.todo-name {
+  font-weight: bold;
+  color: #333;
+  margin-top: 5px;
+  word-break: break-word;
+}
+
+.todo-date {
+  font-size: 12px;
+  color: #999;
+  margin-top: 3px;
+}
+
+.delete-btn {
+  padding: 8px 15px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.delete-btn:hover {
+  background: #ff2222;
+  transform: scale(1.05);
+}
+
+.empty-message {
+  color: #999;
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* ===== GUIDE PAGE ===== */
+.guide-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.guide-container h2 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.guide-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.guide-section h3 {
+  color: #667eea;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.guide-section p {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+/* ===== GAME PAGE ===== */
+/* ===== TYPING GAME ===== */
+.game-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.game-container h2 {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.game-instruction {
+  color: #666;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.game-stats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat span:first-child {
+  font-size: 12px;
+  color: #999;
+  font-weight: bold;
+}
+
+.stat span:last-child {
+  font-size: 24px;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.typing-display {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+  min-height: 100px;
+  border: 2px solid #e0e0e0;
+}
+
+.current-word {
+  font-size: 32px;
+  font-weight: bold;
+  color: #667eea;
+  margin-bottom: 15px;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+.word-list {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.8;
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.typing-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  transition: all 0.3s;
+}
+
+.typing-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+.typing-input:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.game-btn {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: all 0.3s;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.game-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.game-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-result {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  min-height: 30px;
+}
+
+.game-result.win {
+  background: #d4edda;
+  color: #155724;
+}
+
+.game-result.lose {
+  background: #f8d7da;
+  color: #721c24;
+}
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 900px) {
+  .todo-con {
+    flex-direction: column;
+  }
+
+  .todo,
+  .date,
+  .priority {
+    width: 100%;
+  }
+
+  .add {
+    width: 100%;
+  }
+
+  .app-tabs {
+    gap: 5px;
+    padding: 10px;
+  }
+
+  .tab-btn {
+    font-size: 12px;
+    padding: 10px 5px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-tabs {
+    gap: 5px;
+    padding: 10px;
+  }
+
+  .tab-btn {
+    font-size: 11px;
+    padding: 8px 4px;
+  }
+
+  .container,
+  .guide-container,
+  .game-container {
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .container p {
+    font-size: 20px;
+  }
+
+  .todo,
+  .date,
+  .priority {
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .add {
+    padding: 10px 15px;
+    font-size: 12px;
+  }
+
+  .game-board {
+    gap: 8px;
+  }
+
+  .game-stats {
+    gap: 15px;
+    padding: 10px;
+  }
+
+  .stat span:last-child {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .tab-btn {
+    font-size: 10px;
+    padding: 6px 3px;
+  }
+
+  .container p {
+    font-size: 16px;
+  }
+
+  .guide-section,
+  .guide-container h2,
+  .game-container h2 {
+    font-size: 14px;
+  }
+}

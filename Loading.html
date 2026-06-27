@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo Pro - Task Management</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- LOADING PAGE -->
+  <div id="loadingPage" class="loading-page">
+    <div class="loader-container">
+      <div class="loader"></div>
+      <h2>Loading Onix Todo Pro</h2>
+      <p>Get ready to organize your tasks...</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+   <div class="web-name"><p>Todo Pro</p></div>
+  <div id="mainApp" class="main-app hidden">
+    <!-- TABS -->
+    <div class="app-tabs">
+      <button class="tab-btn active" onclick="switchTab('todo')">📝 Tasks</button>
+      <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
+      <button class="tab-btn" onclick="switchTab('game')">🎮 Mini Game</button>
+    </div>
+
+    <!-- TODO TAB -->
+    <div id="todoTab" class="tab-content active">
+      <div class="container">
+        <p>📝 Todo List</p>
+        <div class="todo-con">
+          <input type="text" class="todo todo-task" placeholder="Todo name" onkeydown="enter(event)">
+          <input type="datetime-local" class="date">
+          <select class="priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+          <button class="add">Add</button>
+        </div>
+        <div class="todo-sec"></div>
+      </div>
+    </div>
+
+    <!-- GUIDE TAB -->
+    <div id="guideTab" class="tab-content">
+      <div class="guide-container">
+        <h2>📖 How to Use Todo Pro</h2>
+        
+        <div class="guide-section">
+          <h3>✏️ Adding a Task</h3>
+          <p>1. Type your task name in the text field</p>
+          <p>2. Select a due date using the date picker</p>
+          <p>3. Choose a priority level (Low, Medium, High)</p>
+          <p>4. Click "Add" or press Enter</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>🎯 Priority Levels</h3>
+          <p><strong>🔴 High Priority:</strong> Urgent tasks, do first</p>
+          <p><strong>🟡 Medium Priority:</strong> Important, do soon</p>
+          <p><strong>🟢 Low Priority:</strong> Can wait, do later</p>
+          <p><em>Tasks are automatically sorted by priority!</em></p>
+        </div>
+
+        <div class="guide-section">
+          <h3>🗑️ Deleting a Task</h3>
+          <p>Click the "Delete" button on any task to remove it</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>💾 Auto-Save</h3>
+          <p>Your tasks are automatically saved to your device</p>
+          <p>Your data persists even after closing the app!</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>📱 Mobile Friendly</h3>
+          <p>Works on phones, tablets, and computers</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME TAB -->
+   <!-- GAME TAB -->
+<div id="gameTab" class="tab-content">
+  <div class="game-container">
+    <h2>⌨️ Typing Speed Game</h2>
+    <p class="game-instruction">Type the words as fast as you can!</p>
+    
+    <div class="game-stats">
+      <div class="stat">
+        <span>WPM:</span>
+        <span id="gameWPM">0</span>
+      </div>
+      <div class="stat">
+        <span>Accuracy:</span>
+        <span id="gameAccuracy">0%</span>
+      </div>
+      <div class="stat">
+        <span>Time:</span>
+        <span id="gameTime">60</span>
+      </div>
+    </div>
+
+    <div class="typing-display">
+      <div id="currentWord" class="current-word">Click Start to begin</div>
+      <div id="wordList" class="word-list"></div>
+    </div>
+
+    <input 
+      type="text" 
+      id="typingInput" 
+      class="typing-input" 
+      placeholder="Type here..."
+      disabled
+    >
+
+    <button class="game-btn" onclick="startTypingGame()">Start Game</button>
+    <div id="gameResult" class="game-result"></div>
+  </div>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
