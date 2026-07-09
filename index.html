@@ -21,9 +21,10 @@
   <div id="mainApp" class="main-app hidden">
     <!-- TABS -->
     <div class="app-tabs">
-      <button class="tab-btn active" onclick="switchTab('todo')">📝 Tasks</button>
-      <button class="tab-btn" onclick="switchTab('guide')">📖 Guide</button>
-      <button class="tab-btn" onclick="switchTab('game')">🎮 Mini Game</button>
+      <button class="tab-btn active" onclick="switchTab('todo', event)">📝 Tasks</button>
+      <button class="tab-btn" onclick="switchTab('guide', event)">📖 Guide</button>
+      <button class="tab-btn" onclick="switchTab('game', event)">🎮 Mini Game</button>
+      <button class="tab-btn" onclick="switchTab('settings', event)">⚙ Settings</button>
     </div>
 
     <!-- TODO TAB -->
@@ -40,6 +41,11 @@
           </select>
           <button class="add">Add</button>
         </div>
+        <div class="todo-actions">
+          <button class="history-toggle">Show History</button>
+          <button class="clear-history hidden">Clear History</button>
+        </div>
+        <div class="history-sec hidden"></div>
         <div class="todo-sec"></div>
       </div>
     </div>
@@ -87,41 +93,101 @@
    <!-- GAME TAB -->
 <div id="gameTab" class="tab-content">
   <div class="game-container">
-    <h2>⌨️ Typing Speed Game</h2>
-    <p class="game-instruction">Type the words as fast as you can!</p>
-    
-    <div class="game-stats">
-      <div class="stat">
-        <span>WPM:</span>
-        <span id="gameWPM">0</span>
-      </div>
-      <div class="stat">
-        <span>Accuracy:</span>
-        <span id="gameAccuracy">0%</span>
-      </div>
-      <div class="stat">
-        <span>Time:</span>
-        <span id="gameTime">60</span>
-      </div>
+    <h2>🎮 Games</h2>
+    <p class="game-instruction">Choose the activity that feels more engaging.</p>
+
+    <div class="mode-selector">
+      <button id="typingModeBtn" class="mode-btn active" onclick="setGameMode('typing')">Typing Speed</button>
+      <button id="tapModeBtn" class="mode-btn" onclick="setGameMode('tapping')">Tapping Speed</button>
     </div>
 
-    <div class="typing-display">
-      <div id="currentWord" class="current-word">Click Start to begin</div>
-      <div id="wordList" class="word-list"></div>
+    <div id="typingMode" class="game-mode-panel">
+      <h3>⌨️ Typing Speed Game</h3>
+      <p class="game-instruction">Type the words as fast and accurately as you can.</p>
+      <div class="game-stats">
+        <div class="stat">
+          <span>WPM:</span>
+          <span id="gameWPM">0</span>
+        </div>
+        <div class="stat">
+          <span>Accuracy:</span>
+          <span id="gameAccuracy">0%</span>
+        </div>
+        <div class="stat">
+          <span>Time:</span>
+          <span id="gameTime">60</span>
+        </div>
+      </div>
+
+      <div class="typing-display">
+        <div id="currentWord" class="current-word">Click Start to begin</div>
+        <div id="wordList" class="word-list"></div>
+      </div>
+
+      <input
+        type="text"
+        id="typingInput"
+        class="typing-input"
+        placeholder="Type here..."
+        disabled
+      />
+
+      <button id="typingStartBtn" class="game-btn" onclick="startTypingGame()">Start Typing Game</button>
+      <div id="gameResult" class="game-result"></div>
     </div>
 
-    <input 
-      type="text" 
-      id="typingInput" 
-      class="typing-input" 
-      placeholder="Type here..."
-      disabled
-    >
-
-    <button class="game-btn" onclick="startTypingGame()">Start Game</button>
-    <div id="gameResult" class="game-result"></div>
+    <div id="tappingMode" class="game-mode-panel hidden">
+      <h3>🖱️ Tapping Speed Game</h3>
+      <p class="game-instruction">Tap the button as fast as you can within the time limit.</p>
+      <div class="tap-stats">
+        <div class="stat">
+          <span>Score:</span>
+          <span id="tapScore">0</span>
+        </div>
+        <div class="stat">
+          <span>Time:</span>
+          <span id="tapTime">15</span>
+        </div>
+      </div>
+      <button id="tapTarget" class="tap-btn" disabled>Tap me!</button>
+      <button id="tapStartBtn" class="game-btn" onclick="startTapGame()">Start Tapping Game</button>
+      <div id="tapResult" class="game-result"></div>
+    </div>
   </div>
 </div>
+
+    <div id="settingsTab" class="tab-content">
+      <div class="container">
+        <p>⚙ Settings & Dashboard</p>
+        <div class="settings-grid">
+          <div class="dashboard-card">
+            <h3>Task Progress</h3>
+            <p>Total active tasks: <strong id="statActiveTasks">0</strong></p>
+            <p>Tasks deleted: <strong id="statDeletedTasks">0</strong></p>
+            <p>Reminders set: <strong id="statRemindersSet">0</strong></p>
+          </div>
+          <div class="dashboard-card">
+            <h3>Game Progress</h3>
+            <p>Typing sessions: <strong id="statTypingSessions">0</strong></p>
+            <p>Best typing WPM: <strong id="statBestWpm">0</strong></p>
+            <p>Tapping sessions: <strong id="statTappingSessions">0</strong></p>
+            <p>Best tapping score: <strong id="statBestTap">0</strong></p>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>How to improve efficiency</h3>
+          <ul>
+            <li>Use the reminder button to track important deadlines.</li>
+            <li>Delete tasks when completed to keep your dashboard clean.</li>
+            <li>Play the typing or tapping game to improve speed and focus.</li>
+            <li>Refresh this page to update your progress and clear old data safely.</li>
+          </ul>
+          <button class="settings-btn" onclick="updateDashboard()">Refresh Dashboard</button>
+          <button class="settings-btn" onclick="clearHistory()">Clear History</button>
+        </div>
+      </div>
+    </div>
       </div>
     </div>
   </div>
