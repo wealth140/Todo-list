@@ -1,9 +1,31 @@
 // LOADING PAGE TIMEOUT
+let appShown = false;
+
+function showMainApp() {
+  if (appShown) return;
+  appShown = true;
+
+  const loadingPage = document.getElementById('loadingPage');
+  const mainApp = document.getElementById('mainApp');
+
+  if (loadingPage) {
+    loadingPage.classList.add('hidden');
+  }
+  if (mainApp) {
+    mainApp.classList.remove('hidden');
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.setTimeout(showMainApp, 2500);
+  });
+} else {
+  window.setTimeout(showMainApp, 2500);
+}
+
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.getElementById('loadingPage').classList.add('hidden');
-    document.getElementById('mainApp').classList.remove('hidden');
-  }, 2500);
+  window.setTimeout(showMainApp, 2500);
 });
 
 // TAB SWITCHING
