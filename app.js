@@ -1,103 +1,71 @@
-// LOADING PAGE TIMEOUT
-let appShown = false;
-
-function showMainApp() {
-  if (appShown) return;
-  appShown = true;
-
-  const loadingPage = document.getElementById('loadingPage');
-  const mainApp = document.getElementById('mainApp');
-
-  if (loadingPage) {
-    loadingPage.classList.add('hidden');
-  }
-  if (mainApp) {
-    mainApp.classList.remove('hidden');
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    window.setTimeout(showMainApp, 2500);
-  });
-} else {
-  window.setTimeout(showMainApp, 2500);
-}
-
-window.addEventListener('load', () => {
-  window.setTimeout(showMainApp, 2500);
-});
-
-// TAB SWITCHING
-function switchTab(tabName, event) {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(tab => {
-    tab.classList.remove('active');
-  });
-  
-  // Remove active from all buttons
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Show selected tab
-  document.getElementById(tabName + 'Tab').classList.add('active');
-  if (event && event.target) {
-    event.target.classList.add('active');
-  }
-}
-
-// ===== TODO APP CODE =====
-const todoList = JSON.parse(localStorage.getItem('task')) || [];
-const todoHistory = JSON.parse(localStorage.getItem('taskHistory')) || [];
-const reminderTimers = {};
-const gameStats = JSON.parse(localStorage.getItem('gameStats')) || {
-  typingSessions: 0,
-  bestWpm: 0,
-  tappingSessions: 0,
-  bestTap: 0,
+const STORAGE_KEYS = {
+  todos: 'task',
+  history: 'taskHistory',
+  gameStats: 'gameStats',
 };
 
-function enter(event) {
-  if (event.key === 'Enter') {
-    addFun();
-  }
+const state = {
+  todos: JSON.parse(localStorage.getItem(STORAGE_KEYS.todos)) || [],
+  history: JSON.parse(localStorage.getItem(STORAGE_KEYS.history)) || [],
+  reminderTimers: {},
+  gameStats: JSON.parse(localStorage.getItem(STORAGE_KEYS.gameStats)) || {
+    typingSessions: 0,
+    bestWpm: 0,
+    tappingSessions: 0,
+    bestTap: 0,
+  },
+};
+
+let typingGameActive = false;
+let typingGameScore = 0;
+let typingGameTime = 60;
+let typingGameStartTime = 60;
+let typingGameCorrect = 0;
+let typingGameTotal = 0;
+let typingGameInterval = null;
+let tapGameActive = false;
+let tapGameScore = 0;
+let tapGameTime = 15;
+let tapGameInterval = null;
+
+function getEl(selector) {
+  return document.querySelector(selector);
+}
+
+function getById(id) {
+  return document.getElementById(id);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function saveTodos() {
-  localStorage.setItem('task', JSON.stringify(todoList));
+  localStorage.setItem(STORAGE_KEYS.todos, JSON.stringify(state.todos));
 }
 
 function saveHistory() {
-  localStorage.setItem('taskHistory', JSON.stringify(todoHistory));
+  localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(state.history));
 }
 
 function saveGameStats() {
-  localStorage.setItem('gameStats', JSON.stringify(gameStats));
-}
-
-function updateDashboard() {
-  const activeTasks = todoList.length;
-  const deletedTasks = todoHistory.filter((item) => item.action === 'Deleted').length;
-  const remindersSet = todoList.filter((item) => item.reminderSet).length;
-
-  document.getElementById('statActiveTasks')?.textContent = activeTasks;
-  document.getElementById('statDeletedTasks')?.textContent = deletedTasks;
-  document.getElementById('statRemindersSet')?.textContent = remindersSet;
-  document.getElementById('statTypingSessions')?.textContent = gameStats.typingSessions;
-  document.getElementById('statBestWpm')?.textContent = gameStats.bestWpm;
-  document.getElementById('statTappingSessions')?.textContent = gameStats.tappingSessions;
-  document.getElementById('statBestTap')?.textContent = gameStats.bestTap;
+  localStorage.setItem(STORAGE_KEYS.gameStats, JSON.stringify(state.gameStats));
 }
 
 function formatDisplayDate(dateString) {
+  if (!dateString) return 'No date';
   const date = new Date(dateString);
-  return isNaN(date.getTime()) ? dateString : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? dateString : date.toLocaleString();
 }
 
 function timeAgo(timestamp) {
   const time = new Date(timestamp).getTime();
-  if (isNaN(time)) return 'unknown time';
+  if (Number.isNaN(time)) return 'unknown time';
   const seconds = Math.floor((Date.now() - time) / 1000);
   if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
@@ -105,10 +73,57 @@ function timeAgo(timestamp) {
   return `${Math.floor(seconds / 86400)} days ago`;
 }
 
+function normalizeTodos() {
+  let updated = false;
+  state.todos.forEach((task) => {
+    if (!task.id) {
+      task.id = `todo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      updated = true;
+    }
+    if (typeof task.reminderSet !== 'boolean') {
+      task.reminderSet = false;
+      updated = true;
+    }
+    if (typeof task.reminderNotified !== 'boolean') {
+      task.reminderNotified = false;
+      updated = true;
+    }
+  });
+
+  if (updated) saveTodos();
+}
+
 function updateHistoryControls() {
-  const clearHistoryBtn = document.querySelector('.clear-history');
+  const clearHistoryBtn = getEl('.clear-history');
   if (!clearHistoryBtn) return;
-  clearHistoryBtn.classList.toggle('hidden', todoHistory.length === 0);
+  clearHistoryBtn.classList.toggle('hidden', state.history.length === 0);
+}
+
+function updateDashboard() {
+  const activeTasks = state.todos.length;
+  const deletedTasks = state.history.filter((item) => item.action === 'Deleted').length;
+  const remindersSet = state.todos.filter((item) => item.reminderSet).length;
+
+  const activeTasksEl = getById('statActiveTasks');
+  if (activeTasksEl) activeTasksEl.textContent = activeTasks;
+
+  const deletedTasksEl = getById('statDeletedTasks');
+  if (deletedTasksEl) deletedTasksEl.textContent = deletedTasks;
+
+  const remindersSetEl = getById('statRemindersSet');
+  if (remindersSetEl) remindersSetEl.textContent = remindersSet;
+
+  const typingSessionsEl = getById('statTypingSessions');
+  if (typingSessionsEl) typingSessionsEl.textContent = state.gameStats.typingSessions;
+
+  const bestWpmEl = getById('statBestWpm');
+  if (bestWpmEl) bestWpmEl.textContent = state.gameStats.bestWpm;
+
+  const tappingSessionsEl = getById('statTappingSessions');
+  if (tappingSessionsEl) tappingSessionsEl.textContent = state.gameStats.tappingSessions;
+
+  const bestTapEl = getById('statBestTap');
+  if (bestTapEl) bestTapEl.textContent = state.gameStats.bestTap;
 }
 
 function requestNotificationPermission() {
@@ -133,29 +148,10 @@ function notifyUser(title, body) {
   }
 }
 
-function normalizeExistingTodos() {
-  let updated = false;
-  todoList.forEach((task) => {
-    if (!task.id) {
-      task.id = `todo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      updated = true;
-    }
-    if (typeof task.reminderSet !== 'boolean') {
-      task.reminderSet = false;
-      updated = true;
-    }
-    if (typeof task.reminderNotified !== 'boolean') {
-      task.reminderNotified = false;
-      updated = true;
-    }
-  });
-  if (updated) saveTodos();
-}
-
 function clearReminder(id) {
-  if (reminderTimers[id]) {
-    clearTimeout(reminderTimers[id]);
-    delete reminderTimers[id];
+  if (state.reminderTimers[id]) {
+    clearTimeout(state.reminderTimers[id]);
+    delete state.reminderTimers[id];
   }
 }
 
@@ -163,7 +159,9 @@ function triggerReminder(task) {
   if (task.reminderNotified) return;
   task.reminderNotified = true;
   saveTodos();
-  returnTodo();
+  renderTodos();
+  renderHistory();
+  updateDashboard();
   notifyUser(`Reminder due: ${task.name}`, `Task is due at ${formatDisplayDate(task.dueDate)}.`);
 }
 
@@ -172,78 +170,48 @@ function scheduleReminder(task) {
   if (!task.reminderSet || task.reminderNotified || !task.dueDate) return;
 
   const due = new Date(task.dueDate).getTime();
-  if (isNaN(due)) return;
+  if (Number.isNaN(due)) return;
 
-  const now = Date.now();
-  if (due <= now) {
+  if (due <= Date.now()) {
     triggerReminder(task);
     return;
   }
 
-  const delay = due - now;
-  reminderTimers[task.id] = setTimeout(() => triggerReminder(task), delay);
+  const delay = due - Date.now();
+  state.reminderTimers[task.id] = window.setTimeout(() => triggerReminder(task), delay);
 }
 
 function scheduleAllReminders() {
-  todoList.forEach(scheduleReminder);
+  state.todos.forEach(scheduleReminder);
 }
 
-function setReminder(taskId) {
-  const task = todoList.find((item) => item.id === taskId);
-  if (!task) return;
-  if (!task.dueDate) {
-    alert('Please choose a due date for this task before setting a reminder.');
-    return;
-  }
+function renderTodos() {
+  const container = getEl('.todo-sec');
+  if (!container) return;
 
-  requestNotificationPermission().then((permission) => {
-    if (permission === 'denied') {
-      alert('Notifications are denied. You will receive a browser alert instead.');
-    }
-    task.reminderSet = true;
-    task.reminderNotified = false;
-    saveTodos();
-    scheduleReminder(task);
-    returnTodo();
-    updateDashboard();
-    if (permission !== 'denied' && permission !== 'unsupported') {
-      notifyUser('Reminder scheduled', `You will be alerted when "${task.name}" is due.`);
-    }
-  });
-}
-
-function returnTodo() {
   const priorityOrder = { high: 1, medium: 2, low: 3 };
-  const sorted = [...todoList].sort((a, b) => 
-    priorityOrder[a.priority || 'low'] - priorityOrder[b.priority || 'low']
-  );
+  const sorted = [...state.todos].sort((a, b) => {
+    const left = priorityOrder[a.priority || 'low'] || 3;
+    const right = priorityOrder[b.priority || 'low'] || 3;
+    return left - right;
+  });
 
-  let todoListHTML = '';
-  
-  if (todoList.length === 0) {
-    todoListHTML = '<div class="empty-message">No tasks yet 📝 Add one above!</div>';
+  if (!state.todos.length) {
+    container.innerHTML = '<div class="empty-message">You have no tasks yet. Add one above to get started.</div>';
   } else {
-    sorted.forEach((todoObject) => {
+    container.innerHTML = sorted.map((todoObject) => {
       const { id, name, dueDate, priority = 'low', reminderSet, reminderNotified } = todoObject;
-      const actualIndex = todoList.findIndex((item) => item.id === id);
-      const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' }[priority];
-      const reminderLabel = reminderSet
-        ? reminderNotified
-          ? 'Reminder Sent'
-          : 'Reminder On'
-        : 'Set Reminder';
-      const reminderClass = reminderSet
-        ? reminderNotified
-          ? 'sent'
-          : 'active'
-        : '';
-      
-      const todoDiv = `
-        <div class="todo-item priority-${priority}">
+      const actualIndex = state.todos.findIndex((item) => item.id === id);
+      const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' }[priority] || '🟢';
+      const reminderLabel = reminderSet ? (reminderNotified ? 'Reminder Sent' : 'Reminder On') : 'Set Reminder';
+      const reminderClass = reminderSet ? (reminderNotified ? 'sent' : 'active') : '';
+
+      return `
+        <div class="todo-item">
           <div>
             <span class="priority-badge ${priority}">${priorityIcon} ${priority.toUpperCase()}</span>
-            <div class="todo-name">${name}</div>
-            <div class="todo-date">${formatDisplayDate(dueDate) || 'No date'}</div>
+            <div class="todo-name">${escapeHtml(name)}</div>
+            <div class="todo-date">${escapeHtml(formatDisplayDate(dueDate))}</div>
           </div>
           <div class="todo-actions-row">
             <button class="reminder-btn ${reminderClass}" data-id="${id}">${reminderLabel}</button>
@@ -251,21 +219,19 @@ function returnTodo() {
           </div>
         </div>
       `;
-      todoListHTML += todoDiv;
-    });
+    }).join('');
   }
 
-  document.querySelector('.todo-sec').innerHTML = todoListHTML;
   saveTodos();
   updateHistoryControls();
   updateDashboard();
-  
-  document.querySelectorAll('.delete-btn').forEach((deleteBtn) => {
+
+  container.querySelectorAll('.delete-btn').forEach((deleteBtn) => {
     deleteBtn.addEventListener('click', () => {
-      const index = parseInt(deleteBtn.dataset.index, 10);
-      const removed = todoList.splice(index, 1)[0];
+      const index = Number.parseInt(deleteBtn.dataset.index, 10);
+      const removed = state.todos.splice(index, 1)[0];
       if (removed) {
-        todoHistory.unshift({
+        state.history.unshift({
           ...removed,
           action: 'Deleted',
           archivedAt: new Date().toISOString(),
@@ -273,76 +239,74 @@ function returnTodo() {
         saveHistory();
         clearReminder(removed.id);
       }
-      returnTodo();
-      returnHistory();
+      renderTodos();
+      renderHistory();
     });
   });
 
-  document.querySelectorAll('.reminder-btn').forEach((reminderBtn) => {
+  container.querySelectorAll('.reminder-btn').forEach((reminderBtn) => {
     reminderBtn.addEventListener('click', () => {
       setReminder(reminderBtn.dataset.id);
     });
   });
 }
 
-function returnHistory() {
-  const historySection = document.querySelector('.history-sec');
+function renderHistory() {
+  const historySection = getEl('.history-sec');
   if (!historySection) return;
 
-  if (todoHistory.length === 0) {
+  if (!state.history.length) {
     historySection.innerHTML = '<div class="empty-message">No task history yet.</div>';
     return;
   }
 
-  let historyHTML = '<div class="history-title">Task History</div>';
-  todoHistory.slice(0, 20).forEach((historyItem) => {
-    historyHTML += `
+  historySection.innerHTML = [
+    '<div class="history-title">Task History</div>',
+    ...state.history.slice(0, 20).map((historyItem) => `
       <div class="history-item">
         <div class="history-details">
-          <strong>${historyItem.name}</strong>
-          <span class="history-meta">Due ${formatDisplayDate(historyItem.dueDate)} • ${historyItem.priority.toUpperCase()} • ${historyItem.action} ${timeAgo(historyItem.archivedAt)}</span>
+          <strong>${escapeHtml(historyItem.name)}</strong>
+          <span class="history-meta">Due ${escapeHtml(formatDisplayDate(historyItem.dueDate))} • ${escapeHtml((historyItem.priority || 'medium').toUpperCase())} • ${escapeHtml(historyItem.action)} ${timeAgo(historyItem.archivedAt)}</span>
         </div>
       </div>
-    `;
-  });
-
-  historySection.innerHTML = historyHTML;
+    `),
+  ].join('');
 }
 
 function toggleHistory() {
-  const historySection = document.querySelector('.history-sec');
-  const historyToggle = document.querySelector('.history-toggle');
+  const historySection = getEl('.history-sec');
+  const historyToggle = getEl('.history-toggle');
   if (!historySection || !historyToggle) return;
 
   const isHidden = historySection.classList.toggle('hidden');
   historyToggle.textContent = isHidden ? 'Show History' : 'Hide History';
   if (!isHidden) {
-    returnHistory();
+    renderHistory();
   }
 }
 
 function clearHistory() {
-  if (!confirm('Clear all task history?')) return;
-  todoHistory.length = 0;
+  if (!window.confirm('Clear all task history?')) return;
+  state.history.length = 0;
   saveHistory();
-  returnHistory();
+  renderHistory();
   updateHistoryControls();
   updateDashboard();
 }
 
-const add = document.querySelector('.add');
+function addTask() {
+  const todoInputElement = getEl('.todo-task');
+  const dateInputElement = getEl('.date');
+  const priorityInputElement = getEl('.priority');
 
-const addFun = () => {
-  const todoInputElement = document.querySelector('.todo-task');
-  const dateInputElement = document.querySelector('.date');
-  const priorityInputElement = document.querySelector('.priority');
-  
+  if (!todoInputElement || !dateInputElement || !priorityInputElement) return;
+
   const name = todoInputElement.value.trim();
   const dueDate = dateInputElement.value.trim();
   const priority = priorityInputElement.value;
 
-  if (name === '' || dueDate === '') {
-    alert('Please fill in both fields');
+  if (!name || !dueDate) {
+    alert('Please fill in both fields.');
     return;
   }
 
@@ -355,220 +319,202 @@ const addFun = () => {
     reminderNotified: false,
   };
 
-  todoList.push(newTask);
-  
+  state.todos.push(newTask);
+  saveTodos();
   todoInputElement.value = '';
   dateInputElement.value = '';
   priorityInputElement.value = 'medium';
-  
-  returnTodo();
+  renderTodos();
   scheduleReminder(newTask);
-};
+  todoInputElement.focus();
+}
 
-normalizeExistingTodos();
-returnTodo();
-returnHistory();
-updateHistoryControls();
-scheduleAllReminders();
-updateDashboard();
+function enter(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addTask();
+  }
+}
 
-if (add) add.addEventListener('click', addFun);
-document.querySelector('.history-toggle')?.addEventListener('click', toggleHistory);
-document.querySelector('.clear-history')?.addEventListener('click', clearHistory);
-// ===== TYPING GAME CODE =====
+function setReminder(taskId) {
+  const task = state.todos.find((item) => item.id === taskId);
+  if (!task) return;
+  if (!task.dueDate) {
+    alert('Please choose a due date before setting a reminder.');
+    return;
+  }
+
+  requestNotificationPermission().then((permission) => {
+    if (permission === 'denied') {
+      alert('Notifications are denied. You will receive a browser alert instead.');
+    }
+
+    task.reminderSet = true;
+    task.reminderNotified = false;
+    saveTodos();
+    scheduleReminder(task);
+    renderTodos();
+    updateDashboard();
+
+    if (permission !== 'denied' && permission !== 'unsupported') {
+      notifyUser('Reminder scheduled', `You will be alerted when "${task.name}" is due.`);
+    }
+  });
+}
+
+function switchTab(tabName, event) {
+  document.querySelectorAll('.tab-content').forEach((tab) => tab.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach((btn) => btn.classList.remove('active'));
+
+  const selectedTab = getById(`${tabName}Tab`);
+  if (!selectedTab) return;
+
+  selectedTab.classList.add('active');
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+}
+
 const typingWords = [
-  // EDUCATION
-  'mathematics', 'physics', 'chemistry', 'biology', 'history',
-  'geography', 'literature', 'language', 'science', 'university',
-  'student', 'teacher', 'classroom', 'homework', 'examination',
-  'textbook', 'lecture', 'knowledge', 'learning', 'education',
-  
-  // COOKING
-  'recipe', 'kitchen', 'cooking', 'baking', 'ingredient',
-  'boiling', 'frying', 'grilling', 'seasoning', 'flavor',
-  'spoon', 'knife', 'stove', 'oven', 'restaurant',
-  'chef', 'delicious', 'nutrition', 'breakfast', 'dinner',
-  
-  // LIFE
-  'happiness', 'family', 'friendship', 'love', 'dreams',
-  'adventure', 'travel', 'journey', 'exercise', 'health',
-  'success', 'motivation', 'inspiration', 'kindness', 'patience',
-  'wisdom', 'courage', 'strength', 'growth', 'balance',
-  
-  // BUSINESS
-  'company', 'business', 'marketing', 'sales', 'profit',
-  'customer', 'product', 'service', 'quality', 'strategy',
-  'investment', 'manager', 'employee', 'contract', 'agreement',
-  'meeting', 'presentation', 'deadline', 'budget', 'growth',
-  
-  // SPORTS
-  'football', 'basketball', 'tennis', 'swimming', 'running',
-  'athlete', 'championship', 'victory', 'training', 'coach',
-  'exercise', 'fitness', 'strength', 'endurance', 'competition',
-  'strategy', 'teamwork', 'effort', 'achievement', 'passion',
-  
-  // TECHNOLOGY
-  'computer', 'software', 'hardware', 'internet', 'website',
-  'email', 'password', 'security', 'database', 'network',
-  'application', 'technology', 'digital', 'electronic', 'server',
-  'algorithm', 'programming', 'code', 'development', 'innovation',
-  
-  // NATURE
-  'forest', 'mountain', 'ocean', 'river', 'desert',
-  'weather', 'climate', 'sunrise', 'sunset', 'season',
-  'animal', 'plant', 'flower', 'tree', 'garden',
-  'wind', 'rain', 'snow', 'storm', 'nature',
-  
-  // ENTERTAINMENT
-  'movie', 'music', 'song', 'dance', 'art',
-  'painting', 'drawing', 'theater', 'concert', 'festival',
-  'entertainment', 'comedy', 'drama', 'action', 'adventure'
+  'mathematics', 'physics', 'chemistry', 'biology', 'history', 'geography', 'literature', 'language', 'science', 'university',
+  'student', 'teacher', 'classroom', 'homework', 'examination', 'textbook', 'lecture', 'knowledge', 'learning', 'education',
+  'recipe', 'kitchen', 'cooking', 'baking', 'ingredient', 'boiling', 'frying', 'grilling', 'seasoning', 'flavor', 'spoon',
+  'knife', 'stove', 'oven', 'restaurant', 'chef', 'delicious', 'nutrition', 'breakfast', 'dinner', 'happiness', 'family',
+  'friendship', 'love', 'dreams', 'adventure', 'travel', 'journey', 'exercise', 'health', 'success', 'motivation', 'inspiration',
+  'kindness', 'patience', 'wisdom', 'courage', 'strength', 'growth', 'balance', 'company', 'business', 'marketing', 'sales',
+  'profit', 'customer', 'product', 'service', 'quality', 'strategy', 'investment', 'manager', 'employee', 'contract', 'agreement',
+  'meeting', 'presentation', 'deadline', 'budget', 'football', 'basketball', 'tennis', 'swimming', 'running', 'athlete',
+  'championship', 'victory', 'training', 'coach', 'fitness', 'endurance', 'competition', 'teamwork', 'effort', 'achievement',
+  'passion', 'computer', 'software', 'hardware', 'internet', 'website', 'email', 'password', 'security', 'database', 'network',
+  'application', 'technology', 'digital', 'electronic', 'server', 'algorithm', 'programming', 'code', 'development', 'innovation',
+  'forest', 'mountain', 'ocean', 'river', 'desert', 'weather', 'climate', 'sunrise', 'sunset', 'season', 'animal', 'plant',
+  'flower', 'tree', 'garden', 'wind', 'rain', 'snow', 'storm', 'nature', 'movie', 'music', 'song', 'dance', 'art', 'painting',
+  'drawing', 'theater', 'concert', 'festival', 'entertainment', 'comedy', 'drama', 'action', 'adventure',
 ];
 
-let typingGameActive = false;
-let typingGameScore = 0;
-let typingGameStartTime = 60;
-let typingGameTime = 60;
-let typingGameCorrect = 0;
-let typingGameTotal = 0;
-let currentWordIndex = 0;
-let typingGameInterval = null;
-let tapGameActive = false;
-let tapGameScore = 0;
-let tapGameTime = 15;
-let tapGameInterval = null;
+function renderNextWord() {
+  const word = typingWords[Math.floor(Math.random() * typingWords.length)];
+  getById('currentWord').textContent = word;
+
+  let upcoming = '';
+  for (let i = 0; i < 3; i += 1) {
+    upcoming += `${typingWords[Math.floor(Math.random() * typingWords.length)]} • `;
+  }
+  getById('wordList').textContent = `Next: ${upcoming}`;
+}
 
 function startTypingGame() {
+  if (typingGameInterval) {
+    window.clearInterval(typingGameInterval);
+  }
+
   typingGameActive = true;
   typingGameScore = 0;
-  typingGameStartTime = 60;
   typingGameTime = 60;
+  typingGameStartTime = 60;
   typingGameCorrect = 0;
   typingGameTotal = 0;
-  currentWordIndex = 0;
 
-  document.getElementById('gameWPM').textContent = '0';
-  document.getElementById('gameAccuracy').textContent = '0%';
-  document.getElementById('gameTime').textContent = '60';
-  document.getElementById('gameResult').textContent = '';
-  const typingButton = document.getElementById('typingStartBtn');
+  getById('gameWPM').textContent = '0';
+  getById('gameAccuracy').textContent = '0%';
+  getById('gameTime').textContent = '60';
+  getById('gameResult').textContent = '';
+  getById('gameResult').className = 'game-result';
+
+  const typingInput = getById('typingInput');
+  const typingButton = getById('typingStartBtn');
+  typingInput.disabled = false;
+  typingInput.value = '';
+  typingInput.focus();
   typingButton.disabled = true;
   typingButton.textContent = 'Game Running...';
-  
-  const typingInput = document.getElementById('typingInput');
-  typingInput.disabled = false;
-  typingInput.focus();
-  typingInput.value = '';
 
-  displayNextWord();
+  renderNextWord();
 
-  typingGameInterval = setInterval(() => {
-    typingGameTime--;
-    document.getElementById('gameTime').textContent = typingGameTime;
+  typingGameInterval = window.setInterval(() => {
+    typingGameTime -= 1;
+    getById('gameTime').textContent = typingGameTime;
 
-    // Calculate WPM based on time elapsed
-    const timeElapsed = typingGameStartTime - typingGameTime;
-    const wpm = timeElapsed > 0 ? Math.round((typingGameScore / timeElapsed) * 60) : 0;
-    document.getElementById('gameWPM').textContent = wpm;
+    const elapsed = typingGameStartTime - typingGameTime;
+    const wpm = elapsed > 0 ? Math.round((typingGameScore / elapsed) * 60) : 0;
+    getById('gameWPM').textContent = wpm;
 
     if (typingGameTime <= 0) {
-      clearInterval(typingGameInterval);
+      window.clearInterval(typingGameInterval);
+      typingGameInterval = null;
       endTypingGame();
     }
   }, 1000);
-
-  typingInput.addEventListener('keypress', handleTyping);
-}
-
-function displayNextWord() {
-  const word = typingWords[Math.floor(Math.random() * typingWords.length)];
-  document.getElementById('currentWord').textContent = word;
-  
-  // Show upcoming words
-  let upcoming = '';
-  for (let i = 0; i < 3; i++) {
-    upcoming += typingWords[Math.floor(Math.random() * typingWords.length)] + ' • ';
-  }
-  document.getElementById('wordList').textContent = 'Next: ' + upcoming;
 }
 
 function handleTyping(event) {
-  if (!typingGameActive) return;
-  if (event.key !== 'Enter') return;
+  if (!typingGameActive || event.key !== 'Enter') return;
+  event.preventDefault();
 
-  const typingInput = document.getElementById('typingInput');
+  const typingInput = getById('typingInput');
   const userInput = typingInput.value.trim().toLowerCase();
-  const currentWord = document.getElementById('currentWord').textContent.toLowerCase();
+  const currentWord = getById('currentWord').textContent.toLowerCase();
 
   typingGameTotal += currentWord.length;
 
   if (userInput === currentWord) {
     typingGameCorrect += currentWord.length;
-    typingGameScore++;
+    typingGameScore += 1;
   }
 
   const accuracy = typingGameTotal > 0 ? Math.round((typingGameCorrect / typingGameTotal) * 100) : 0;
-  document.getElementById('gameAccuracy').textContent = accuracy + '%';
-
+  getById('gameAccuracy').textContent = `${accuracy}%`;
   typingInput.value = '';
-  displayNextWord();
+  renderNextWord();
 }
 
 function endTypingGame() {
   typingGameActive = false;
-  document.getElementById('typingInput').disabled = true;
-  const typingButton = document.getElementById('typingStartBtn');
-  if (typingButton) {
-    typingButton.disabled = false;
-    typingButton.textContent = 'Start Typing Game';
-  }
+  const typingInput = getById('typingInput');
+  const typingButton = getById('typingStartBtn');
 
-  // Final WPM calculation
-  const timeElapsed = typingGameStartTime - typingGameTime;
-  const wpm = timeElapsed > 0 ? Math.round((typingGameScore / timeElapsed) * 60) : 0;
+  typingInput.disabled = true;
+  typingButton.disabled = false;
+  typingButton.textContent = 'Start Typing Game';
+
+  const elapsed = typingGameStartTime - typingGameTime;
+  const wpm = elapsed > 0 ? Math.round((typingGameScore / elapsed) * 60) : 0;
   const accuracy = typingGameTotal > 0 ? Math.round((typingGameCorrect / typingGameTotal) * 100) : 0;
 
   let message = '';
   let resultClass = '';
 
   if (wpm > 80) {
-    message = `🚀 Excellent! WPM: ${wpm} | Accuracy: ${accuracy}% - You're a typing master!`;
+    message = `🚀 Excellent! WPM: ${wpm} | Accuracy: ${accuracy}% - You are a typing master!`;
     resultClass = 'win';
   } else if (wpm > 60) {
-    message = `🙌 Great! WPM: ${wpm} | Accuracy: ${accuracy}% - Very good!`;
+    message = `🙌 Great! WPM: ${wpm} | Accuracy: ${accuracy}% - Very strong!`;
     resultClass = 'win';
   } else if (wpm > 40) {
-    message = `👍 Good! WPM: ${wpm} | Accuracy: ${accuracy}% - Keep practicing!`;
+    message = `👍 Nice! WPM: ${wpm} | Accuracy: ${accuracy}% - Keep practicing!`;
     resultClass = 'win';
   } else {
     message = `😅 WPM: ${wpm} | Accuracy: ${accuracy}% - Try again!`;
     resultClass = 'lose';
   }
 
-  const resultDiv = document.getElementById('gameResult');
+  const resultDiv = getById('gameResult');
   resultDiv.textContent = message;
   resultDiv.className = `game-result ${resultClass}`;
 
-  document.getElementById('typingInput').removeEventListener('keypress', handleTyping);
-  const typingButton = document.getElementById('typingStartBtn');
-  if (typingButton) {
-    typingButton.disabled = false;
-    typingButton.textContent = 'Start Typing Game';
-  }
-
-  gameStats.typingSessions += 1;
-  if (wpm > gameStats.bestWpm) {
-    gameStats.bestWpm = wpm;
-  }
+  state.gameStats.typingSessions += 1;
+  state.gameStats.bestWpm = Math.max(state.gameStats.bestWpm, wpm);
   saveGameStats();
   updateDashboard();
 }
 
 function setGameMode(mode) {
-  const typingPanel = document.getElementById('typingMode');
-  const tappingPanel = document.getElementById('tappingMode');
-  const typingButton = document.getElementById('typingModeBtn');
-  const tapButton = document.getElementById('tapModeBtn');
+  const typingPanel = getById('typingMode');
+  const tappingPanel = getById('tappingMode');
+  const typingButton = getById('typingModeBtn');
+  const tapButton = getById('tapModeBtn');
+
+  if (!typingPanel || !tappingPanel || !typingButton || !tapButton) return;
 
   if (mode === 'typing') {
     typingPanel.classList.remove('hidden');
@@ -584,30 +530,32 @@ function setGameMode(mode) {
 }
 
 function startTapGame() {
+  if (tapGameInterval) {
+    window.clearInterval(tapGameInterval);
+  }
+
   tapGameActive = true;
   tapGameScore = 0;
   tapGameTime = 15;
 
-  document.getElementById('tapScore').textContent = '0';
-  document.getElementById('tapTime').textContent = tapGameTime;
-  document.getElementById('tapResult').textContent = '';
-  const tapTarget = document.getElementById('tapTarget');
-  const tapStartButton = document.getElementById('tapStartBtn');
+  getById('tapScore').textContent = '0';
+  getById('tapTime').textContent = '15';
+  getById('tapResult').textContent = '';
+  getById('tapResult').className = 'game-result';
 
-  if (tapTarget) {
-    tapTarget.disabled = false;
-    tapTarget.textContent = 'Tap me!';
-  }
-  if (tapStartButton) {
-    tapStartButton.disabled = true;
-  }
+  const tapTarget = getById('tapTarget');
+  const tapStartButton = getById('tapStartBtn');
+  tapTarget.disabled = false;
+  tapTarget.textContent = 'Tap me!';
+  tapStartButton.disabled = true;
 
-  tapGameInterval = setInterval(() => {
+  tapGameInterval = window.setInterval(() => {
     tapGameTime -= 1;
-    document.getElementById('tapTime').textContent = tapGameTime;
+    getById('tapTime').textContent = tapGameTime;
 
     if (tapGameTime <= 0) {
-      clearInterval(tapGameInterval);
+      window.clearInterval(tapGameInterval);
+      tapGameInterval = null;
       endTapGame();
     }
   }, 1000);
@@ -615,22 +563,15 @@ function startTapGame() {
 
 function endTapGame() {
   tapGameActive = false;
-  const tapTarget = document.getElementById('tapTarget');
-  const tapStartButton = document.getElementById('tapStartBtn');
+  const tapTarget = getById('tapTarget');
+  const tapStartButton = getById('tapStartBtn');
+  tapTarget.disabled = true;
+  tapStartButton.disabled = false;
 
-  if (tapTarget) {
-    tapTarget.disabled = true;
-  }
-  if (tapStartButton) {
-    tapStartButton.disabled = false;
-  }
+  getById('tapResult').textContent = `Your score is ${tapGameScore}. ${tapGameScore >= 25 ? 'Awesome tapping speed!' : 'Keep practicing to increase your score.'}`;
 
-  document.getElementById('tapResult').textContent = `Your score is ${tapGameScore}. ${tapGameScore >= 25 ? 'Awesome tapping speed!' : 'Keep practicing to increase your score.'}`;
-
-  gameStats.tappingSessions += 1;
-  if (tapGameScore > gameStats.bestTap) {
-    gameStats.bestTap = tapGameScore;
-  }
+  state.gameStats.tappingSessions += 1;
+  state.gameStats.bestTap = Math.max(state.gameStats.bestTap, tapGameScore);
   saveGameStats();
   updateDashboard();
 }
@@ -638,7 +579,25 @@ function endTapGame() {
 function handleTap() {
   if (!tapGameActive) return;
   tapGameScore += 1;
-  document.getElementById('tapScore').textContent = tapGameScore;
+  getById('tapScore').textContent = tapGameScore;
 }
 
-document.getElementById('tapTarget')?.addEventListener('click', handleTap);
+document.addEventListener('DOMContentLoaded', () => {
+  normalizeTodos();
+  renderTodos();
+  renderHistory();
+  updateHistoryControls();
+  updateDashboard();
+  scheduleAllReminders();
+  setGameMode('typing');
+
+  getEl('.add')?.addEventListener('click', addTask);
+  getEl('.todo-task')?.addEventListener('keydown', enter);
+  getEl('.history-toggle')?.addEventListener('click', toggleHistory);
+  getEl('.clear-history')?.addEventListener('click', clearHistory);
+  getById('typingStartBtn')?.addEventListener('click', startTypingGame);
+  getById('tapStartBtn')?.addEventListener('click', startTapGame);
+  getById('tapTarget')?.addEventListener('click', handleTap);
+  getById('typingInput')?.addEventListener('keydown', handleTyping);
+  getById('refreshDashboardBtn')?.addEventListener('click', updateDashboard);
+});

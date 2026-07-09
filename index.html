@@ -1,194 +1,190 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Todo Pro - Task Management</title>
-  <link rel="stylesheet" href="app.css">
-</head>
-<body>
-  <!-- LOADING PAGE -->
-  <div id="loadingPage" class="loading-page">
-    <div class="loader-container">
-      <div class="loader"></div>
-      <h2>Loading Onix Todo Pro</h2>
-      <p>Get ready to organize your tasks...</p>
-    </div>
-  </div>
-
-  <!-- MAIN APP -->
-   <div class="web-name"><p>Todo Pro</p></div>
-  <div id="mainApp" class="main-app hidden">
-    <!-- TABS -->
-    <div class="app-tabs">
-      <button class="tab-btn active" onclick="switchTab('todo', event)">📝 Tasks</button>
-      <button class="tab-btn" onclick="switchTab('guide', event)">📖 Guide</button>
-      <button class="tab-btn" onclick="switchTab('game', event)">🎮 Mini Game</button>
-      <button class="tab-btn" onclick="switchTab('settings', event)">⚙ Settings</button>
-    </div>
-
-    <!-- TODO TAB -->
-    <div id="todoTab" class="tab-content active">
-      <div class="container">
-        <p>📝 Todo List</p>
-        <div class="todo-con">
-          <input type="text" class="todo todo-task" placeholder="Todo name" onkeydown="enter(event)">
-          <input type="datetime-local" class="date">
-          <select class="priority">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
-          </select>
-          <button class="add">Add</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo Pro - Task Management</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero-card">
+        <div>
+          <p class="eyebrow">Focus • Flow • Finish</p>
+          <h1>Todo Pro</h1>
+          <p class="hero-copy">Turn your daily plans into a calm, productive rhythm with reminders, a task history, and playful progress games.</p>
         </div>
-        <div class="todo-actions">
-          <button class="history-toggle">Show History</button>
-          <button class="clear-history hidden">Clear History</button>
-        </div>
-        <div class="history-sec hidden"></div>
-        <div class="todo-sec"></div>
-      </div>
-    </div>
+      </header>
 
-    <!-- GUIDE TAB -->
-    <div id="guideTab" class="tab-content">
-      <div class="guide-container">
-        <h2>📖 How to Use Todo Pro</h2>
-        
-        <div class="guide-section">
-          <h3>✏️ Adding a Task</h3>
-          <p>1. Type your task name in the text field</p>
-          <p>2. Select a due date using the date picker</p>
-          <p>3. Choose a priority level (Low, Medium, High)</p>
-          <p>4. Click "Add" or press Enter</p>
-        </div>
-
-        <div class="guide-section">
-          <h3>🎯 Priority Levels</h3>
-          <p><strong>🔴 High Priority:</strong> Urgent tasks, do first</p>
-          <p><strong>🟡 Medium Priority:</strong> Important, do soon</p>
-          <p><strong>🟢 Low Priority:</strong> Can wait, do later</p>
-          <p><em>Tasks are automatically sorted by priority!</em></p>
-        </div>
-
-        <div class="guide-section">
-          <h3>🗑️ Deleting a Task</h3>
-          <p>Click the "Delete" button on any task to remove it</p>
-        </div>
-
-        <div class="guide-section">
-          <h3>💾 Auto-Save</h3>
-          <p>Your tasks are automatically saved to your device</p>
-          <p>Your data persists even after closing the app!</p>
-        </div>
-
-        <div class="guide-section">
-          <h3>📱 Mobile Friendly</h3>
-          <p>Works on phones, tablets, and computers</p>
-        </div>
-      </div>
-    </div>
-
-   <!-- GAME TAB -->
-<div id="gameTab" class="tab-content">
-  <div class="game-container">
-    <h2>🎮 Games</h2>
-    <p class="game-instruction">Choose the activity that feels more engaging.</p>
-
-    <div class="mode-selector">
-      <button id="typingModeBtn" class="mode-btn active" onclick="setGameMode('typing')">Typing Speed</button>
-      <button id="tapModeBtn" class="mode-btn" onclick="setGameMode('tapping')">Tapping Speed</button>
-    </div>
-
-    <div id="typingMode" class="game-mode-panel">
-      <h3>⌨️ Typing Speed Game</h3>
-      <p class="game-instruction">Type the words as fast and accurately as you can.</p>
-      <div class="game-stats">
-        <div class="stat">
-          <span>WPM:</span>
-          <span id="gameWPM">0</span>
-        </div>
-        <div class="stat">
-          <span>Accuracy:</span>
-          <span id="gameAccuracy">0%</span>
-        </div>
-        <div class="stat">
-          <span>Time:</span>
-          <span id="gameTime">60</span>
-        </div>
+      <div class="app-tabs">
+        <button class="tab-btn active" onclick="switchTab('todo', event)">📝 Tasks</button>
+        <button class="tab-btn" onclick="switchTab('guide', event)">📖 Guide</button>
+        <button class="tab-btn" onclick="switchTab('game', event)">🎮 Mini Game</button>
+        <button class="tab-btn" onclick="switchTab('settings', event)">⚙ Settings</button>
       </div>
 
-      <div class="typing-display">
-        <div id="currentWord" class="current-word">Click Start to begin</div>
-        <div id="wordList" class="word-list"></div>
-      </div>
+      <main class="tab-panels">
+        <section id="todoTab" class="tab-content active">
+          <div class="container">
+            <div class="section-heading">
+              <p>📝 Todo List</p>
+              <span>Plan today, finish faster.</span>
+            </div>
 
-      <input
-        type="text"
-        id="typingInput"
-        class="typing-input"
-        placeholder="Type here..."
-        disabled
-      />
+            <div class="todo-con">
+              <input type="text" class="todo todo-task" placeholder="Task name" onkeydown="enter(event)" />
+              <input type="datetime-local" class="date" />
+              <select class="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+              <button class="add">Add Task</button>
+            </div>
 
-      <button id="typingStartBtn" class="game-btn" onclick="startTypingGame()">Start Typing Game</button>
-      <div id="gameResult" class="game-result"></div>
-    </div>
+            <div class="todo-actions">
+              <button class="history-toggle">Show History</button>
+              <button class="clear-history hidden">Clear History</button>
+            </div>
 
-    <div id="tappingMode" class="game-mode-panel hidden">
-      <h3>🖱️ Tapping Speed Game</h3>
-      <p class="game-instruction">Tap the button as fast as you can within the time limit.</p>
-      <div class="tap-stats">
-        <div class="stat">
-          <span>Score:</span>
-          <span id="tapScore">0</span>
-        </div>
-        <div class="stat">
-          <span>Time:</span>
-          <span id="tapTime">15</span>
-        </div>
-      </div>
-      <button id="tapTarget" class="tap-btn" disabled>Tap me!</button>
-      <button id="tapStartBtn" class="game-btn" onclick="startTapGame()">Start Tapping Game</button>
-      <div id="tapResult" class="game-result"></div>
-    </div>
-  </div>
-</div>
-
-    <div id="settingsTab" class="tab-content">
-      <div class="container">
-        <p>⚙ Settings & Dashboard</p>
-        <div class="settings-grid">
-          <div class="dashboard-card">
-            <h3>Task Progress</h3>
-            <p>Total active tasks: <strong id="statActiveTasks">0</strong></p>
-            <p>Tasks deleted: <strong id="statDeletedTasks">0</strong></p>
-            <p>Reminders set: <strong id="statRemindersSet">0</strong></p>
+            <div class="history-sec hidden"></div>
+            <div class="todo-sec"></div>
           </div>
-          <div class="dashboard-card">
-            <h3>Game Progress</h3>
-            <p>Typing sessions: <strong id="statTypingSessions">0</strong></p>
-            <p>Best typing WPM: <strong id="statBestWpm">0</strong></p>
-            <p>Tapping sessions: <strong id="statTappingSessions">0</strong></p>
-            <p>Best tapping score: <strong id="statBestTap">0</strong></p>
+        </section>
+
+        <section id="guideTab" class="tab-content">
+          <div class="container guide-container">
+            <div class="section-heading">
+              <p>📖 How to Use Todo Pro</p>
+              <span>Everything you need to stay on top of your day.</span>
+            </div>
+
+            <div class="guide-section">
+              <h3>✏️ Add tasks in seconds</h3>
+              <p>Type a task, choose a due date and priority, then click Add Task or press Enter.</p>
+            </div>
+
+            <div class="guide-section">
+              <h3>🎯 Prioritize with intent</h3>
+              <p>High priority tasks appear first so your hardest work is easier to tackle.</p>
+            </div>
+
+            <div class="guide-section">
+              <h3>⏰ Stay reminded</h3>
+              <p>Set reminders on important tasks and receive a notification when they are due.</p>
+            </div>
+
+            <div class="guide-section">
+              <h3>🗂️ Review task history</h3>
+              <p>Use Show History to revisit tasks you removed and keep your workflow visible.</p>
+            </div>
+
+            <div class="guide-section">
+              <h3>🎮 Enjoy progress games</h3>
+              <p>Switch between typing and tapping modes to make productive practice feel rewarding.</p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="settings-section">
-          <h3>How to improve efficiency</h3>
-          <ul>
-            <li>Use the reminder button to track important deadlines.</li>
-            <li>Delete tasks when completed to keep your dashboard clean.</li>
-            <li>Play the typing or tapping game to improve speed and focus.</li>
-            <li>Refresh this page to update your progress and clear old data safely.</li>
-          </ul>
-          <button class="settings-btn" onclick="updateDashboard()">Refresh Dashboard</button>
-          <button class="settings-btn" onclick="clearHistory()">Clear History</button>
-        </div>
-      </div>
+        <section id="gameTab" class="tab-content">
+          <div class="container game-card">
+            <div class="section-heading">
+              <p>🎮 Mini Games</p>
+              <span>Pick a mode and give your focus a boost.</span>
+            </div>
+
+            <div class="mode-selector">
+              <button id="typingModeBtn" class="mode-btn active" onclick="setGameMode('typing')">Typing Speed</button>
+              <button id="tapModeBtn" class="mode-btn" onclick="setGameMode('tapping')">Tapping Speed</button>
+            </div>
+
+            <div id="typingMode" class="game-mode-panel">
+              <h3>⌨️ Typing Speed Game</h3>
+              <p class="game-instruction">Type each word and beat your own pace.</p>
+              <div class="game-stats">
+                <div class="stat">
+                  <span>WPM</span>
+                  <strong id="gameWPM">0</strong>
+                </div>
+                <div class="stat">
+                  <span>Accuracy</span>
+                  <strong id="gameAccuracy">0%</strong>
+                </div>
+                <div class="stat">
+                  <span>Time</span>
+                  <strong id="gameTime">60</strong>
+                </div>
+              </div>
+
+              <div class="typing-display">
+                <div id="currentWord" class="current-word">Click Start to begin</div>
+                <div id="wordList" class="word-list"></div>
+              </div>
+
+              <input type="text" id="typingInput" class="typing-input" placeholder="Type here..." disabled />
+              <button id="typingStartBtn" class="game-btn">Start Typing Game</button>
+              <div id="gameResult" class="game-result"></div>
+            </div>
+
+            <div id="tappingMode" class="game-mode-panel hidden">
+              <h3>🖱️ Tapping Speed Game</h3>
+              <p class="game-instruction">Tap as many times as you can before time runs out.</p>
+              <div class="game-stats">
+                <div class="stat">
+                  <span>Score</span>
+                  <strong id="tapScore">0</strong>
+                </div>
+                <div class="stat">
+                  <span>Time</span>
+                  <strong id="tapTime">15</strong>
+                </div>
+              </div>
+              <button id="tapTarget" class="tap-btn" disabled>Tap me!</button>
+              <button id="tapStartBtn" class="game-btn">Start Tapping Game</button>
+              <div id="tapResult" class="game-result"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="settingsTab" class="tab-content">
+          <div class="container">
+            <div class="section-heading">
+              <p>⚙ Settings & Dashboard</p>
+              <span>See how your productivity and focus are growing.</span>
+            </div>
+
+            <div class="settings-grid">
+              <div class="dashboard-card">
+                <h3>Task Progress</h3>
+                <p>Total active tasks: <strong id="statActiveTasks">0</strong></p>
+                <p>Tasks deleted: <strong id="statDeletedTasks">0</strong></p>
+                <p>Reminders set: <strong id="statRemindersSet">0</strong></p>
+              </div>
+              <div class="dashboard-card">
+                <h3>Game Progress</h3>
+                <p>Typing sessions: <strong id="statTypingSessions">0</strong></p>
+                <p>Best typing WPM: <strong id="statBestWpm">0</strong></p>
+                <p>Tapping sessions: <strong id="statTappingSessions">0</strong></p>
+                <p>Best tapping score: <strong id="statBestTap">0</strong></p>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3>Ways to improve your efficiency</h3>
+              <ul>
+                <li>Use reminders to stay on top of deadlines.</li>
+                <li>Delete finished tasks to keep your list focused.</li>
+                <li>Play the typing or tapping game to sharpen your rhythm.</li>
+                <li>Refresh your dashboard whenever you want a quick progress check.</li>
+              </ul>
+              <button id="refreshDashboardBtn" class="settings-btn">Refresh Dashboard</button>
+              <button class="settings-btn secondary" onclick="clearHistory()">Clear History</button>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-  </div>
 
-  <script src="app.js"></script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>
