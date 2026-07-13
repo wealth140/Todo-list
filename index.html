@@ -9,11 +9,14 @@
   <body>
     <div class="app-shell">
       <header class="hero-card">
-        <div>
-          <p class="eyebrow">Focus • Flow • Finish</p>
-          <h1>Todo Pro</h1>
-          <p class="hero-copy">Turn your daily plans into a calm, productive rhythm with reminders, a task history, and playful progress games.</p>
+        <div class="hero-top">
+          <div>
+            <p id="welcomeGreeting" class="eyebrow">Welcome back</p>
+            <h1>Todo Pro</h1>
+          </div>
+          <button id="themeToggleBtn" class="theme-toggle-btn" type="button">🌗 Toggle Theme</button>
         </div>
+        <p id="dailyQuote" class="hero-copy">Turn your daily plans into a calm, productive rhythm with reminders, a task history, and playful progress games.</p>
       </header>
 
       <div class="app-tabs">
@@ -167,6 +170,17 @@
                 <p>Tapping sessions: <strong id="statTappingSessions">0</strong></p>
                 <p>Best tapping score: <strong id="statBestTap">0</strong></p>
               </div>
+              <div class="dashboard-card">
+                <h3>Completion Progress</h3>
+                <p>Today completed: <strong id="statDailyCompleted">0</strong></p>
+                <p>Weekly completed: <strong id="statWeeklyCompleted">0</strong></p>
+                <p>Monthly completed: <strong id="statMonthlyCompleted">0</strong></p>
+              </div>
+            </div>
+
+            <div class="dashboard-card graph-card">
+              <h3>Weekly Completion Graph</h3>
+              <div id="completionGraph" class="bar-chart"></div>
             </div>
 
             <div class="settings-section">
@@ -184,7 +198,7 @@
         </section>
       </main>
     </div>
-
+    <div id="celebrationToast" class="celebration-toast hidden"></div>
     <script src="app.js"></script>
   </body>
 </html>

@@ -1,7 +1,8 @@
-const STORAGE_KEYS = {
+﻿const STORAGE_KEYS = {
   todos: 'task',
   history: 'taskHistory',
   gameStats: 'gameStats',
+  theme: 'appTheme',
 };
 
 const state = {
@@ -14,6 +15,7 @@ const state = {
     tappingSessions: 0,
     bestTap: 0,
   },
+  theme: localStorage.getItem(STORAGE_KEYS.theme) || 'dark',
 };
 
 let typingGameActive = false;
@@ -28,6 +30,17 @@ let tapGameScore = 0;
 let tapGameTime = 15;
 let tapGameInterval = null;
 
+const QUOTES = [
+  'Small steps every day move you closer to a stronger tomorrow.',
+  'Finish today’s task and let tomorrow reward your focus.',
+  'A completed task is progress you can celebrate.',
+  'Your momentum grows with every goal you complete.',
+  'Stay focused, finish strong, and let your day shine.',
+  'The best time to take action is now — one task at a time.',
+  'Build your streak with one completed task after another.',
+];
+
+// -------------------- DOM HELPERS --------------------
 function getEl(selector) {
   return document.querySelector(selector);
 }
@@ -41,10 +54,11 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/\"/g, '&quot;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
+// -------------------- STORAGE --------------------
 function saveTodos() {
   localStorage.setItem(STORAGE_KEYS.todos, JSON.stringify(state.todos));
 }
@@ -55,6 +69,11 @@ function saveHistory() {
 
 function saveGameStats() {
   localStorage.setItem(STORAGE_KEYS.gameStats, JSON.stringify(state.gameStats));
+}
+
+function saveThemePreference(theme) {
+  state.theme = theme;
+  localStorage.setItem(STORAGE_KEYS.theme, theme);
 }
 
 function formatDisplayDate(dateString) {
@@ -93,39 +112,32 @@ function normalizeTodos() {
   if (updated) saveTodos();
 }
 
-function updateHistoryControls() {
-  const clearHistoryBtn = getEl('.clear-history');
-  if (!clearHistoryBtn) return;
-  clearHistoryBtn.classList.toggle('hidden', state.history.length === 0);
+// -------------------- THEME --------------------
+function applyTheme(theme) {
+  const body = document.body;
+  if (theme === 'light') {
+    body.classList.add('light-theme');
+    body.classList.remove('dark-theme');
+    getById('themeToggleBtn').textContent = '🌙 Switch to Dark';
+  } else {
+    body.classList.add('dark-theme');
+    body.classList.remove('light-theme');
+    getById('themeToggleBtn').textContent = '☀️ Switch to Light';
+  }
 }
 
-function updateDashboard() {
-  const activeTasks = state.todos.length;
-  const deletedTasks = state.history.filter((item) => item.action === 'Deleted').length;
-  const remindersSet = state.todos.filter((item) => item.reminderSet).length;
-
-  const activeTasksEl = getById('statActiveTasks');
-  if (activeTasksEl) activeTasksEl.textContent = activeTasks;
-
-  const deletedTasksEl = getById('statDeletedTasks');
-  if (deletedTasksEl) deletedTasksEl.textContent = deletedTasks;
-
-  const remindersSetEl = getById('statRemindersSet');
-  if (remindersSetEl) remindersSetEl.textContent = remindersSet;
-
-  const typingSessionsEl = getById('statTypingSessions');
-  if (typingSessionsEl) typingSessionsEl.textContent = state.gameStats.typingSessions;
-
-  const bestWpmEl = getById('statBestWpm');
-  if (bestWpmEl) bestWpmEl.textContent = state.gameStats.bestWpm;
-
-  const tappingSessionsEl = getById('statTappingSessions');
-  if (tappingSessionsEl) tappingSessionsEl.textContent = state.gameStats.tappingSessions;
-
-  const bestTapEl = getById('statBestTap');
-  if (bestTapEl) bestTapEl.textContent = state.gameStats.bestTap;
+function loadThemePreference() {
+  const theme = state.theme || 'dark';
+  applyTheme(theme);
 }
 
+function toggleTheme() {
+  const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+  applyTheme(nextTheme);
+  saveThemePreference(nextTheme);
+}
+
+// -------------------- NOTIFICATIONS & REMINDERS --------------------
 function requestNotificationPermission() {
   return new Promise((resolve) => {
     if (!('Notification' in window)) {
@@ -185,6 +197,112 @@ function scheduleAllReminders() {
   state.todos.forEach(scheduleReminder);
 }
 
+// -------------------- DASHBOARD & METRICS --------------------
+function countCompletedSince(days) {
+  const since = Date.now() - days * 86400000;
+  return state.history.filter((item) => item.action === 'Completed' && new Date(item.archivedAt).getTime() >= since).length;
+}
+
+function getWeeklyCompletionData() {
+  const days = 7;
+  const baseDate = new Date();
+  baseDate.setHours(0, 0, 0, 0);
+
+  const data = Array.from({ length: days }, (_, index) => {
+    const day = new Date(baseDate);
+    day.setDate(baseDate.getDate() - (days - 1 - index));
+    return {
+      label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+      iso: day.toISOString().slice(0, 10),
+      count: 0,
+    };
+  });
+
+  state.history.forEach((item) => {
+    if (item.action !== 'Completed') return;
+    const completedDate = new Date(item.archivedAt).toISOString().slice(0, 10);
+    const match = data.find((row) => row.iso === completedDate);
+    if (match) {
+      match.count += 1;
+    }
+  });
+
+  return data;
+}
+
+function renderCompletionGraph() {
+  const chart = getById('completionGraph');
+  if (!chart) return;
+
+  const progress = getWeeklyCompletionData();
+  const maxCount = Math.max(...progress.map((row) => row.count), 1);
+
+  chart.innerHTML = progress
+    .map((row) => {
+      const height = Math.max(10, Math.round((row.count / maxCount) * 120));
+      return `
+        <div class="chart-column">
+          <div class="chart-bar" style="height:${height}px">
+            <span>${row.count}</span>
+          </div>
+          <div class="chart-label">${row.label}</div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function updateDashboard() {
+  const activeTasks = state.todos.length;
+  const deletedTasks = state.history.filter((item) => item.action === 'Deleted').length;
+  const remindersSet = state.todos.filter((item) => item.reminderSet).length;
+
+  getById('statActiveTasks').textContent = activeTasks;
+  getById('statDeletedTasks').textContent = deletedTasks;
+  getById('statRemindersSet').textContent = remindersSet;
+  getById('statTypingSessions').textContent = state.gameStats.typingSessions;
+  getById('statBestWpm').textContent = state.gameStats.bestWpm;
+  getById('statTappingSessions').textContent = state.gameStats.tappingSessions;
+  getById('statBestTap').textContent = state.gameStats.bestTap;
+  getById('statDailyCompleted').textContent = countCompletedSince(1);
+  getById('statWeeklyCompleted').textContent = countCompletedSince(7);
+  getById('statMonthlyCompleted').textContent = countCompletedSince(30);
+  renderCompletionGraph();
+}
+
+function getQuoteOfDay() {
+  const now = new Date();
+  return QUOTES[now.getDate() % QUOTES.length];
+}
+
+function setWelcomeMessage() {
+  const hour = new Date().getHours();
+  const timePhrase = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  getById('welcomeGreeting').textContent = `${timePhrase}, welcome back!`;
+  getById('dailyQuote').textContent = getQuoteOfDay();
+}
+
+function showCelebration(message) {
+  const celebration = getById('celebrationToast');
+  if (!celebration) return;
+  celebration.textContent = message;
+  celebration.classList.remove('hidden');
+  celebration.classList.add('visible');
+
+  window.clearTimeout(celebration._timeout);
+  celebration._timeout = window.setTimeout(() => {
+    celebration.classList.remove('visible');
+    celebration.classList.add('hidden');
+  }, 3200);
+}
+
+// -------------------- TODO LOGIC --------------------
+function updateHistoryControls() {
+  const clearHistoryBtn = getEl('.clear-history');
+  if (!clearHistoryBtn) return;
+  clearHistoryBtn.classList.toggle('hidden', state.history.length === 0);
+}
+
 function renderTodos() {
   const container = getEl('.todo-sec');
   if (!container) return;
@@ -199,55 +317,45 @@ function renderTodos() {
   if (!state.todos.length) {
     container.innerHTML = '<div class="empty-message">You have no tasks yet. Add one above to get started.</div>';
   } else {
-    container.innerHTML = sorted.map((todoObject) => {
-      const { id, name, dueDate, priority = 'low', reminderSet, reminderNotified } = todoObject;
-      const actualIndex = state.todos.findIndex((item) => item.id === id);
-      const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' }[priority] || '🟢';
-      const reminderLabel = reminderSet ? (reminderNotified ? 'Reminder Sent' : 'Reminder On') : 'Set Reminder';
-      const reminderClass = reminderSet ? (reminderNotified ? 'sent' : 'active') : '';
+    container.innerHTML = sorted
+      .map((todoObject) => {
+        const { id, name, dueDate, priority = 'low', reminderSet, reminderNotified } = todoObject;
+        const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' }[priority] || '🟢';
+        const reminderLabel = reminderSet ? (reminderNotified ? 'Reminder Sent' : 'Reminder On') : 'Set Reminder';
+        const reminderClass = reminderSet ? (reminderNotified ? 'sent' : 'active') : '';
 
-      return `
-        <div class="todo-item">
-          <div>
-            <span class="priority-badge ${priority}">${priorityIcon} ${priority.toUpperCase()}</span>
-            <div class="todo-name">${escapeHtml(name)}</div>
-            <div class="todo-date">${escapeHtml(formatDisplayDate(dueDate))}</div>
+        return `
+          <div class="todo-item">
+            <div>
+              <span class="priority-badge ${priority}">${priorityIcon} ${priority.toUpperCase()}</span>
+              <div class="todo-name">${escapeHtml(name)}</div>
+              <div class="todo-date">${escapeHtml(formatDisplayDate(dueDate))}</div>
+            </div>
+            <div class="todo-actions-row">
+              <button class="complete-btn" data-id="${id}">Complete</button>
+              <button class="reminder-btn ${reminderClass}" data-id="${id}">${reminderLabel}</button>
+              <button class="delete-btn" data-id="${id}">Delete</button>
+            </div>
           </div>
-          <div class="todo-actions-row">
-            <button class="reminder-btn ${reminderClass}" data-id="${id}">${reminderLabel}</button>
-            <button class="delete-btn" data-index="${actualIndex}">Delete</button>
-          </div>
-        </div>
-      `;
-    }).join('');
+        `;
+      })
+      .join('');
   }
 
   saveTodos();
   updateHistoryControls();
   updateDashboard();
 
-  container.querySelectorAll('.delete-btn').forEach((deleteBtn) => {
-    deleteBtn.addEventListener('click', () => {
-      const index = Number.parseInt(deleteBtn.dataset.index, 10);
-      const removed = state.todos.splice(index, 1)[0];
-      if (removed) {
-        state.history.unshift({
-          ...removed,
-          action: 'Deleted',
-          archivedAt: new Date().toISOString(),
-        });
-        saveHistory();
-        clearReminder(removed.id);
-      }
-      renderTodos();
-      renderHistory();
-    });
+  container.querySelectorAll('.complete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => completeTask(btn.dataset.id));
   });
 
-  container.querySelectorAll('.reminder-btn').forEach((reminderBtn) => {
-    reminderBtn.addEventListener('click', () => {
-      setReminder(reminderBtn.dataset.id);
-    });
+  container.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => deleteTask(btn.dataset.id));
+  });
+
+  container.querySelectorAll('.reminder-btn').forEach((btn) => {
+    btn.addEventListener('click', () => setReminder(btn.dataset.id));
   });
 }
 
@@ -336,6 +444,42 @@ function enter(event) {
   }
 }
 
+function completeTask(taskId) {
+  const taskIndex = state.todos.findIndex((item) => item.id === taskId);
+  if (taskIndex === -1) return;
+  const task = state.todos.splice(taskIndex, 1)[0];
+  if (task) {
+    state.history.unshift({
+      ...task,
+      action: 'Completed',
+      archivedAt: new Date().toISOString(),
+    });
+    saveHistory();
+    clearReminder(task.id);
+    renderTodos();
+    renderHistory();
+    updateDashboard();
+    showCelebration(`🎉 Nice work! '${task.name}' is complete.`);
+  }
+}
+
+function deleteTask(taskId) {
+  const taskIndex = state.todos.findIndex((item) => item.id === taskId);
+  if (taskIndex === -1) return;
+  const removed = state.todos.splice(taskIndex, 1)[0];
+  if (removed) {
+    state.history.unshift({
+      ...removed,
+      action: 'Deleted',
+      archivedAt: new Date().toISOString(),
+    });
+    saveHistory();
+    clearReminder(removed.id);
+    renderTodos();
+    renderHistory();
+  }
+}
+
 function setReminder(taskId) {
   const task = state.todos.find((item) => item.id === taskId);
   if (!task) return;
@@ -375,6 +519,7 @@ function switchTab(tabName, event) {
   }
 }
 
+// -------------------- GAME LOGIC --------------------
 const typingWords = [
   'mathematics', 'physics', 'chemistry', 'biology', 'history', 'geography', 'literature', 'language', 'science', 'university',
   'student', 'teacher', 'classroom', 'homework', 'examination', 'textbook', 'lecture', 'knowledge', 'learning', 'education',
@@ -582,6 +727,7 @@ function handleTap() {
   getById('tapScore').textContent = tapGameScore;
 }
 
+// -------------------- INITIALIZATION --------------------
 document.addEventListener('DOMContentLoaded', () => {
   normalizeTodos();
   renderTodos();
@@ -590,6 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDashboard();
   scheduleAllReminders();
   setGameMode('typing');
+  setWelcomeMessage();
+  loadThemePreference();
 
   getEl('.add')?.addEventListener('click', addTask);
   getEl('.todo-task')?.addEventListener('keydown', enter);
@@ -600,4 +748,5 @@ document.addEventListener('DOMContentLoaded', () => {
   getById('tapTarget')?.addEventListener('click', handleTap);
   getById('typingInput')?.addEventListener('keydown', handleTyping);
   getById('refreshDashboardBtn')?.addEventListener('click', updateDashboard);
+  getById('themeToggleBtn')?.addEventListener('click', toggleTheme);
 });

@@ -15,6 +15,61 @@
   --shadow: 0 16px 40px rgba(2, 10, 27, 0.32);
 }
 
+body.light-theme {
+  color-scheme: light;
+  --bg: #eff4ff;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-strong: rgba(255, 255, 255, 1);
+  --text: #101828;
+  --muted: #52667f;
+  --accent: #5b6dff;
+  --accent-strong: #2d3cff;
+  --accent-soft: rgba(91, 109, 255, 0.15);
+  --success: #2f9c64;
+  --warning: #d98f29;
+  --danger: #d64541;
+  --border: rgba(16, 24, 40, 0.08);
+  --shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+  background: radial-gradient(circle at top left, #e7eeff 0%, #f7f9ff 45%, #ffffff 100%);
+}
+
+body.light-theme .hero-card,
+body.light-theme .container,
+body.light-theme .history-item,
+body.light-theme .dashboard-card,
+body.light-theme .settings-section,
+body.light-theme .guide-section,
+body.light-theme .game-mode-panel {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body.light-theme .tab-btn,
+body.light-theme .history-toggle,
+body.light-theme .settings-btn.secondary,
+body.light-theme .delete-btn,
+body.light-theme .mode-btn {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text);
+}
+
+body.light-theme .todo,
+body.light-theme .date,
+body.light-theme .priority,
+body.light-theme .typing-input {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+body.light-theme .todo-item,
+body.light-theme .history-item,
+body.light-theme .dashboard-card,
+body.light-theme .settings-section,
+body.light-theme .guide-section,
+body.light-theme .game-mode-panel {
+  box-shadow: var(--shadow);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -63,6 +118,103 @@ select {
   border-radius: 28px;
   padding: 28px;
   margin-bottom: 18px;
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.hero-top h1 {
+  margin-top: 0;
+}
+
+.theme-toggle-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.hero-copy {
+  max-width: 740px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.bar-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  padding: 14px 6px 6px;
+}
+
+.chart-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-bar {
+  width: 100%;
+  min-height: 10px;
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.chart-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.celebration-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(124, 140, 255, 0.96), rgba(61, 220, 151, 0.96));
+  color: white;
+  padding: 14px 20px;
+  border-radius: 999px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 999;
+}
+
+.celebration-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-6px);
+}
+
+.celebration-toast.hidden {
+  opacity: 0;
+}
+
+.graph-card {
+  margin-bottom: 16px;
 }
 
 .eyebrow {
@@ -184,6 +336,7 @@ select {
 .history-toggle,
 .reminder-btn,
 .delete-btn,
+.complete-btn,
 .mode-btn,
 .tap-btn {
   border: none;
@@ -349,6 +502,11 @@ select {
   background: linear-gradient(135deg, var(--success), #24b96f);
 }
 
+.complete-btn {
+  background: linear-gradient(135deg, #3ddc97, #1fbf7d);
+  color: white;
+}
+
 .delete-btn {
   background: rgba(255, 255, 255, 0.14);
   color: var(--text);
@@ -448,7 +606,7 @@ select {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
