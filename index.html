@@ -7,75 +7,119 @@
     <link rel="stylesheet" href="app.css" />
   </head>
   <body class="dark-theme">
-    <div id="loadingOverlay" class="loading-overlay">
-      <div class="loading-panel">
+    <!-- LOADING SCREEN -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
         <div class="loader-ring"></div>
-        <h2>Welcome to Todo Pro</h2>
-        <p>Build a productivity hub that keeps your day organized, balanced, and meaningful.</p>
-        <input id="userNameInput" type="text" placeholder="Enter your name" />
-        <button id="startAppBtn" class="primary-btn" type="button">Start My Hub</button>
-        <p class="loading-note">Your name will personalize the experience and help keep your goals focused.</p>
+        <h2>Todo Pro</h2>
+        <p>Your personal productivity hub awaits</p>
       </div>
     </div>
 
+    <!-- NAME INPUT PAGE -->
+    <div id="nameInputPage" class="name-input-page hidden">
+      <div class="name-input-wrapper">
+        <div class="name-input-card">
+          <div class="name-input-header">
+            <h1>Welcome to Your Hub</h1>
+            <p>Let's personalize your productivity experience</p>
+          </div>
+          <div class="name-input-form">
+            <div class="input-group">
+              <label for="userNameInputField">What's your name?</label>
+              <input
+                id="userNameInputField"
+                type="text"
+                placeholder="Enter your name"
+                class="name-input-field"
+              />
+              <p class="input-hint">Your name will greet you each day and keep your goals personal.</p>
+            </div>
+            <button id="startHubBtn" class="start-hub-btn" type="button">Start Your Hub</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP -->
     <div id="appShell" class="app-shell hidden">
-      <aside class="app-nav">
+      <!-- MOBILE TOP BAR -->
+      <div class="mobile-top-bar">
+        <button id="mobileNavToggle" class="mobile-nav-toggle" type="button" aria-label="Open navigation menu" aria-controls="appNavigation" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <button id="soundToggleMobile" class="sound-toggle-btn" type="button" title="Toggle reminder sound" aria-label="Toggle reminder sound">Sound: On</button>
+        <span class="top-bar-title">Productivity Hub</span>
+        <button id="aiAssistantToggleMobile" class="ai-toggle-btn" type="button" title="Open productivity assistant" aria-label="Open productivity assistant">Assistant</button>
+      </div>
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside id="appNavigation" class="app-nav">
         <div class="nav-brand">
-          <strong>Productivity Hub</strong>
-          <span>Tasks • Reminders • Progress</span>
+          <div>
+            <strong>Productivity Hub</strong>
+            <span>Organize • Achieve • Grow</span>
+          </div>
         </div>
         <nav class="nav-actions">
-          <button class="nav-btn active" data-tab="tasks">Tasks</button>
-          <button class="nav-btn" data-tab="dashboard">Dashboard</button>
-          <button class="nav-btn" data-tab="games">Games</button>
-          <button class="nav-btn" data-tab="reminders">Reminders</button>
-          <button class="nav-btn" data-tab="guide">Guide</button>
+          <button class="nav-btn active" data-tab="tasks" aria-controls="tasksTab" aria-current="page" type="button">
+            <span class="nav-label">Tasks</span>
+          </button>
+          <button class="nav-btn" data-tab="dashboard" aria-controls="dashboardTab" type="button">
+            <span class="nav-label">Dashboard</span>
+          </button>
+          <button class="nav-btn" data-tab="games" aria-controls="gamesTab" type="button">
+            <span class="nav-label">Games</span>
+          </button>
+          <button class="nav-btn" data-tab="reminders" aria-controls="remindersTab" type="button">
+            <span class="nav-label">Reminders</span>
+          </button>
+          <button class="nav-btn" data-tab="guide" aria-controls="guideTab" type="button">
+            <span class="nav-label">Guide</span>
+          </button>
         </nav>
         <div class="nav-footer">
-          <p>Tap a section to move through your hub.</p>
+          <button id="soundToggleSidebar" class="sound-toggle-btn secondary" type="button" title="Toggle reminder sound" aria-label="Toggle reminder sound">Reminder sound: On</button>
+          <button id="aiAssistantToggleSidebar" class="ai-toggle-btn secondary" type="button" title="Open productivity assistant">Productivity assistant</button>
         </div>
       </aside>
+      <button id="navBackdrop" class="nav-backdrop" type="button" aria-label="Close navigation menu" tabindex="-1"></button>
 
+      <!-- MAIN CONTENT -->
       <div class="app-main">
-        <div class="mobile-nav">
-          <button class="nav-btn active" data-tab="tasks">Tasks</button>
-          <button class="nav-btn" data-tab="dashboard">Dashboard</button>
-          <button class="nav-btn" data-tab="games">Games</button>
-          <button class="nav-btn" data-tab="reminders">Reminders</button>
-          <button class="nav-btn" data-tab="guide">Guide</button>
-        </div>
-
-        <header class="hero-card">
-          <div class="hero-top">
-            <div>
-              <p id="welcomeGreeting" class="eyebrow">Welcome back</p>
-              <h1 id="hubTitle">Your Productivity Hub</h1>
-            </div>
-            <button id="themeToggleBtn" class="theme-toggle-btn" type="button">☀️ Light mode</button>
-          </div>
-          <p id="dailyQuote" class="hero-copy">A smarter todo hub helps you stay focused, finish tasks, and reflect on your progress.</p>
-          <div class="hero-cards">
-            <div class="hero-card-mini">
-              <span>Today’s focus</span>
-              <strong id="statHubTasks">0 tasks</strong>
-            </div>
-            <div class="hero-card-mini">
-              <span>Reminders active</span>
-              <strong id="statHubReminders">0 reminders</strong>
-            </div>
-            <div class="hero-card-mini">
-              <span>Progress streak</span>
-              <strong id="statHubStreak">0 days</strong>
-            </div>
-          </div>
-        </header>
-
         <main class="tab-panels">
+          <!-- TASKS TAB -->
           <section id="tasksTab" class="tab-content active">
+            <header class="hero-card photo-hero">
+              <div class="hero-top">
+                <div>
+                  <p id="welcomeGreeting" class="eyebrow">Welcome back</p>
+                  <h1 id="hubTitle">Your Productivity Hub</h1>
+                </div>
+                <button id="themeToggleBtn" class="theme-toggle-btn" type="button">Light theme</button>
+              </div>
+              <p id="dailyQuote" class="hero-copy">Your quote for today</p>
+              <div class="hero-cards">
+                <div class="hero-card-mini">
+                  <span>Today's tasks</span>
+                  <strong id="statHubTasks">0</strong>
+                </div>
+                <div class="hero-card-mini">
+                  <span>Active reminders</span>
+                  <strong id="statHubReminders">0</strong>
+                </div>
+                <div class="hero-card-mini">
+                  <span>Streak (days)</span>
+                  <strong id="statHubStreak">0</strong>
+                </div>
+              </div>
+            </header>
             <div class="container">
               <div class="section-heading">
-                <p>📝 Task Board</p>
-                <span>Organize your day with clear, modern task controls.</span>
+                <p>Task Board</p>
+                <span>Organize your day with clarity and focus</span>
               </div>
               <div class="todo-con">
                 <input id="taskNameInput" type="text" class="todo todo-task" placeholder="Task name" />
@@ -85,7 +129,7 @@
                   <option value="medium" selected>Medium</option>
                   <option value="high">High</option>
                 </select>
-                <button id="addTaskBtn" class="add" type="button">Add Task</button>
+                <button id="addTaskBtn" class="add" type="button">Add</button>
               </div>
               <div class="todo-actions">
                 <button id="historyToggleBtn" class="history-toggle" type="button">Show History</button>
@@ -96,58 +140,62 @@
             </div>
           </section>
 
+          <!-- DASHBOARD TAB -->
           <section id="dashboardTab" class="tab-content">
             <div class="container dashboard-container">
               <div class="section-heading">
-                <p>📊 Dashboard</p>
-                <span>Track your daily, weekly, and monthly progress in one place.</span>
+                <p>Your Progress</p>
+                <span>Track daily, weekly, and monthly trends</span>
               </div>
               <div class="settings-grid">
                 <div class="dashboard-card">
-                  <h3>Task Health</h3>
+                  <h3>Today's Focus</h3>
                   <p>Active tasks: <strong id="statActiveTasks">0</strong></p>
                   <p>Completed today: <strong id="statDailyCompleted">0</strong></p>
+                  <p>Completion rate: <strong id="statDailyRate">0%</strong></p>
+                </div>
+                <div class="dashboard-card">
+                  <h3>Weekly Pulse</h3>
                   <p>Completed this week: <strong id="statWeeklyCompleted">0</strong></p>
+                  <p>Avg per day: <strong id="statWeeklyAvg">0</strong></p>
+                  <p>Best day: <strong id="statBestDay">--</strong></p>
                 </div>
                 <div class="dashboard-card">
-                  <h3>Reminder Status</h3>
-                  <p>Reminders set: <strong id="statRemindersSet">0</strong></p>
-                  <p>Reminder alarm: <strong id="statAlarmMode">Off</strong></p>
-                </div>
-                <div class="dashboard-card">
-                  <h3>Game Momentum</h3>
+                  <h3>Growth Stats</h3>
+                  <p>Reminders active: <strong id="statRemindersSet">0</strong></p>
                   <p>Typing sessions: <strong id="statTypingSessions">0</strong></p>
                   <p>Best WPM: <strong id="statBestWpm">0</strong></p>
-                  <p>Best tapping: <strong id="statBestTap">0</strong></p>
+                  <p>Best tap score: <strong id="statBestTap">0</strong></p>
                 </div>
               </div>
               <div class="dashboard-card graph-card">
-                <h3>Weekly Completion</h3>
+                <h3>Weekly Completion Graph</h3>
                 <div id="completionGraph" class="bar-chart"></div>
               </div>
             </div>
           </section>
 
+          <!-- GAMES TAB -->
           <section id="gamesTab" class="tab-content">
             <div class="container game-card">
               <div class="section-heading">
-                <p>🎮 Mini Games</p>
-                <span>Refresh your focus with fun typing and tapping challenges.</span>
+                <p>Focus Games</p>
+                <span>Refresh your focus and have fun</span>
               </div>
               <div class="mode-selector">
                 <button id="typingModeBtn" class="mode-btn active" type="button" data-game="typing">Typing Speed</button>
                 <button id="tapModeBtn" class="mode-btn" type="button" data-game="tapping">Tapping Speed</button>
               </div>
               <div id="typingMode" class="game-mode-panel">
-                <h3>⌨️ Typing Speed Game</h3>
-                <p class="game-instruction">Type the word and hit Enter to keep your pace strong.</p>
+                <h3>Typing Speed</h3>
+                <p class="game-instruction">Type each word and hit Enter to keep your pace.</p>
                 <div class="game-stats">
                   <div class="stat"><span>WPM</span><strong id="gameWPM">0</strong></div>
                   <div class="stat"><span>Accuracy</span><strong id="gameAccuracy">0%</strong></div>
-                  <div class="stat"><span>Time</span><strong id="gameTime">60</strong></div>
+                  <div class="stat"><span>Time</span><strong id="gameTime">60s</strong></div>
                 </div>
                 <div class="typing-display">
-                  <div id="currentWord" class="current-word">Click Start to begin</div>
+                  <div id="currentWord" class="current-word">Click Start</div>
                   <div id="wordList" class="word-list"></div>
                 </div>
                 <input id="typingInput" type="text" class="typing-input" placeholder="Type here..." disabled />
@@ -155,11 +203,11 @@
                 <div id="gameResult" class="game-result"></div>
               </div>
               <div id="tappingMode" class="game-mode-panel hidden">
-                <h3>🖱️ Tapping Speed Game</h3>
-                <p class="game-instruction">Tap the button quickly before time runs out.</p>
+                <h3>Tapping Speed</h3>
+                <p class="game-instruction">Tap as fast as you can.</p>
                 <div class="game-stats">
                   <div class="stat"><span>Score</span><strong id="tapScore">0</strong></div>
-                  <div class="stat"><span>Time</span><strong id="tapTime">15</strong></div>
+                  <div class="stat"><span>Time</span><strong id="tapTime">15s</strong></div>
                 </div>
                 <button id="tapTarget" class="tap-btn" disabled type="button">Tap me!</button>
                 <button id="tapStartBtn" class="game-btn" type="button">Start Tapping Game</button>
@@ -168,22 +216,24 @@
             </div>
           </section>
 
+          <!-- REMINDERS TAB -->
           <section id="remindersTab" class="tab-content">
             <div class="container">
               <div class="section-heading">
-                <p>⏰ Reminder Settings</p>
-                <span>Set reminders that feel like a real alert on your device.</span>
+                <p>Reminder Settings</p>
+                <span>Control how reminders alert you</span>
               </div>
               <div class="settings-grid">
                 <div class="dashboard-card">
-                  <h3>Alarm Notification</h3>
-                  <p>When enabled, reminders will play a short alert and vibrate if supported.</p>
-                  <button id="alarmModeToggle" class="settings-btn" type="button">Enable Alarm Mode</button>
+                  <h3>Alarm Mode</h3>
+                  <p>Enable audio and vibration alerts.</p>
+                  <button id="alarmModeToggle" class="settings-btn" type="button">Enable Alarm</button>
+                  <p class="setting-status">Status: <strong id="statAlarmMode">Off</strong></p>
                 </div>
                 <div class="dashboard-card">
-                  <h3>Notification Access</h3>
-                  <p>Allow browser notifications to receive reminders like an alarm.</p>
-                  <button id="requestNotificationBtn" class="settings-btn" type="button">Allow Notifications</button>
+                  <h3>Notifications</h3>
+                  <p>Allow device notifications.</p>
+                  <button id="requestNotificationBtn" class="settings-btn" type="button">Allow</button>
                 </div>
               </div>
               <div class="dashboard-card">
@@ -193,27 +243,35 @@
             </div>
           </section>
 
+          <!-- GUIDE TAB -->
           <section id="guideTab" class="tab-content">
             <div class="container guide-container">
               <div class="section-heading">
-                <p>📖 How to Use Your Hub</p>
-                <span>Explore the features that help you build better habits over time.</span>
+                <p>How to Use Your Hub</p>
+                <span>Learn features that help you succeed</span>
+              </div>
+              <div class="guide-section guide-section-photo">
+                <h3>Create and manage tasks</h3>
+                <p>Add tasks with due dates and priority levels. Mark them complete when done to build momentum.</p>
+                <img class="guide-photo" src="assets/images/planning.jpg" alt="A calm, organized workspace ready for planning" />
+              </div>
+              <div class="guide-section guide-section-photo">
+                <h3>Set reminders that work</h3>
+                <p>Enable alarm mode to get audio alerts. Your hub will notify you on your device when tasks are due.</p>
+                <img class="guide-photo" src="assets/images/workspace.jpg" alt="A modern desk setup for focused work" />
+              </div>
+              <div class="guide-section guide-section-photo">
+                <h3>Track your progress</h3>
+                <p>Dashboard shows daily, weekly, and monthly stats. See your completion trends and stay motivated.</p>
+                <img class="guide-photo" src="assets/images/collaboration.jpg" alt="Colleagues collaborating in a bright, modern workspace" />
               </div>
               <div class="guide-section">
-                <h3>🏁 Start with a clear daily plan</h3>
-                <p>Create tasks, assign a due date, and mark priority so your work stays organized.</p>
+                <h3>Take a short focus break</h3>
+                <p>Type or tap games help sharpen focus. Play between tasks to stay energized.</p>
               </div>
               <div class="guide-section">
-                <h3>🔔 Use reminders like alarms</h3>
-                <p>Enable alarm mode to receive reminders you can’t miss, right from your device.</p>
-              </div>
-              <div class="guide-section">
-                <h3>📈 Learn from progress</h3>
-                <p>Dashboard insights show your daily, weekly, and monthly completion trends.</p>
-              </div>
-              <div class="guide-section">
-                <h3>🎮 Recharge with games</h3>
-                <p>Switch between typing and tapping to keep your focus sharp while staying productive.</p>
+                <h3>Productivity assistant</h3>
+                <p>Ask for a summary of your tasks or a practical tip for choosing what to do next.</p>
               </div>
             </div>
           </section>
@@ -221,11 +279,30 @@
       </div>
     </div>
 
+    <!-- PRODUCTIVITY ASSISTANT PANEL -->
+    <div id="aiAssistantPanel" class="ai-assistant-panel hidden">
+      <div class="ai-panel-header">
+        <h3>Productivity Assistant</h3>
+        <button id="closeAiPanel" class="close-btn" type="button" aria-label="Close assistant">Close</button>
+      </div>
+      <div id="aiConversation" class="ai-conversation"></div>
+      <div class="ai-input-area">
+        <input id="aiUserInput" type="text" class="ai-input" placeholder="Ask about your tasks..." />
+        <button id="aiSendBtn" class="ai-send-btn" type="button">Send</button>
+        <button id="aiSpeakBtn" class="ai-speak-btn" type="button" title="Read the last reply aloud">Read aloud</button>
+      </div>
+    </div>
+
+    <!-- CELEBRATION TOAST -->
+    <div id="celebrationToast" class="celebration-toast hidden"></div>
+
+    <!-- SCRIPTS -->
     <script src="todo-js/storage.js"></script>
     <script src="todo-js/ui.js"></script>
     <script src="todo-js/tasks.js"></script>
     <script src="todo-js/dashboard.js"></script>
     <script src="todo-js/games.js"></script>
+    <script src="todo-js/assistant.js"></script>
     <script src="todo-js/main.js"></script>
   </body>
 </html>

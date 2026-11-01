@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   theme: 'appTheme',
   userName: 'userName',
   alarmMode: 'alarmMode',
+  soundEnabled: 'soundEnabled',
 };
 
 const state = {
@@ -19,6 +20,7 @@ const state = {
   theme: localStorage.getItem(STORAGE_KEYS.theme) || 'dark',
   userName: localStorage.getItem(STORAGE_KEYS.userName) || '',
   alarmMode: localStorage.getItem(STORAGE_KEYS.alarmMode) === 'true',
+  soundEnabled: localStorage.getItem(STORAGE_KEYS.soundEnabled) !== 'false',
   reminderTimers: {},
 };
 

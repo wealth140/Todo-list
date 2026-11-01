@@ -191,6 +191,7 @@ function completeTask(taskId) {
   const index = state.todos.findIndex((item) => item.id === taskId);
   if (index === -1) return;
   const [task] = state.todos.splice(index, 1);
+  clearReminder(task.id);
   state.history.unshift({ ...task, action: 'Completed', archivedAt: new Date().toISOString() });
   saveTodos();
   saveHistory();
@@ -198,7 +199,7 @@ function completeTask(taskId) {
   renderHistory();
   updateDashboard();
   updateHubSummary();
-  showCelebration(`🎉 Nice work! '${task.name}' is complete.`);
+  showCelebration(`Nice work! '${task.name}' is complete.`);
 }
 
 function deleteTask(taskId) {
@@ -271,7 +272,13 @@ function scheduleReminder(task) {
     triggerReminder(task);
     return;
   }
-  state.reminderTimers[task.id] = window.setTimeout(() => triggerReminder(task), delay);
+  state.reminderTimers[task.id] = window.setTimeout(() => {
+    if (dueTime > Date.now()) {
+      scheduleReminder(task);
+      return;
+    }
+    triggerReminder(task);
+  }, Math.min(delay, 2147483647));
 }
 
 function scheduleAllReminders() {

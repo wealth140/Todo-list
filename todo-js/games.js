@@ -104,16 +104,16 @@ function endTypingGame() {
   let message = '';
   let resultClass = '';
   if (wpm > 80) {
-    message = `🚀 Excellent! WPM: ${wpm} | Accuracy: ${accuracy}% - You're on fire!`;
+    message = `Excellent! WPM: ${wpm} | Accuracy: ${accuracy}% - You're on fire!`;
     resultClass = 'win';
   } else if (wpm > 60) {
-    message = `🙌 Great! WPM: ${wpm} | Accuracy: ${accuracy}% - Strong performance!`;
+    message = `Great! WPM: ${wpm} | Accuracy: ${accuracy}% - Strong performance!`;
     resultClass = 'win';
   } else if (wpm > 40) {
-    message = `👍 Nice! WPM: ${wpm} | Accuracy: ${accuracy}% - Keep going!`;
+    message = `Nice! WPM: ${wpm} | Accuracy: ${accuracy}% - Keep going!`;
     resultClass = 'win';
   } else {
-    message = `😅 WPM: ${wpm} | Accuracy: ${accuracy}% - Try again for a better score.`;
+    message = `WPM: ${wpm} | Accuracy: ${accuracy}% - Try again for a better score.`;
     resultClass = 'lose';
   }
   const resultDiv = getById('gameResult');

@@ -45,26 +45,33 @@ function setWelcomeMessage() {
   const hour = new Date().getHours();
   const timePhrase = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const name = state.userName || 'Friend';
-  getById('welcomeGreeting').textContent = `${timePhrase}, ${name}`;
-  getById('dailyQuote').textContent = QUOTES[new Date().getDate() % QUOTES.length];
-  getById('hubTitle').textContent = `${name}'s Productivity Hub`;
+  const greeting = getById('welcomeGreeting');
+  const quote = getById('dailyQuote');
+  const title = getById('hubTitle');
+  if (greeting) greeting.textContent = `${timePhrase}, ${name}`;
+  if (quote) quote.textContent = QUOTES[new Date().getDate() % QUOTES.length];
+  if (title) title.textContent = `${name}'s Productivity Hub`;
 }
 
 function updateHubSummary() {
-  getById('statHubTasks').textContent = `${state.todos.length} tasks`;
-  getById('statHubReminders').textContent = `${state.todos.filter((item) => item.reminderSet).length} reminders`;
-  getById('statHubStreak').textContent = `${countCompletedSince(7)} days`;
+  const tasks = getById('statHubTasks');
+  const reminders = getById('statHubReminders');
+  const streak = getById('statHubStreak');
+  if (tasks) tasks.textContent = `${state.todos.length} tasks`;
+  if (reminders) reminders.textContent = `${state.todos.filter((item) => item.reminderSet).length} reminders`;
+  if (streak) streak.textContent = `${getCompletionStreak()} days`;
 }
 
 function applyTheme(theme) {
+  const themeToggle = getById('themeToggleBtn');
   if (theme === 'light') {
     document.body.classList.add('light-theme');
     document.body.classList.remove('dark-theme');
-    getById('themeToggleBtn').textContent = '🌙 Dark mode';
+    if (themeToggle) themeToggle.textContent = 'Dark theme';
   } else {
     document.body.classList.add('dark-theme');
     document.body.classList.remove('light-theme');
-    getById('themeToggleBtn').textContent = '☀️ Light mode';
+    if (themeToggle) themeToggle.textContent = 'Light theme';
   }
 }
 
@@ -72,22 +79,54 @@ function loadThemePreference() {
   applyTheme(state.theme || 'dark');
 }
 
-function showLoadingOverlay() {
-  getById('loadingOverlay').classList.remove('hidden');
+function hideLoadingScreen() {
+  getById('loadingScreen')?.classList.add('hidden');
 }
 
 function hideLoadingOverlay() {
-  getById('loadingOverlay').classList.add('hidden');
-  getById('appShell').classList.remove('hidden');
+  hideLoadingScreen();
+  getById('nameInputPage')?.classList.add('hidden');
+  getById('appShell')?.classList.remove('hidden');
 }
 
-function setActiveTab(tabName) {
+function setActiveTab(tabName, options = {}) {
+  const target = getById(`${tabName}Tab`);
+  if (!target || !target.classList.contains('tab-content')) return false;
+
   document.querySelectorAll('.tab-content').forEach((tab) => {
     tab.classList.toggle('active', tab.id === `${tabName}Tab`);
+    tab.setAttribute('aria-hidden', String(tab !== target));
   });
 
-  document.querySelectorAll('.app-nav .nav-btn, .mobile-nav .nav-btn').forEach((button) => {
-    button.classList.toggle('active', button.dataset.tab === tabName);
+  document.querySelectorAll('.app-nav .nav-btn').forEach((button) => {
+    const isActive = button.dataset.tab === tabName;
+    button.classList.toggle('active', isActive);
+    if (isActive) {
+      button.setAttribute('aria-current', 'page');
+    } else {
+      button.removeAttribute('aria-current');
+    }
+  });
+
+  if (options.updateHistory !== false && window.location.hash !== `#${target.id}`) {
+    window.history.pushState(null, '', `#${target.id}`);
+  }
+  if (options.scroll !== false) {
+    target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }
+  closeMobileNav();
+  return true;
+}
+
+function updateSoundControls() {
+  document.querySelectorAll('.sound-toggle-btn').forEach((button) => {
+    button.textContent = `${button.classList.contains('secondary') ? 'Reminder sound' : 'Sound'}: ${state.soundEnabled ? 'On' : 'Off'}`;
+    button.setAttribute('aria-pressed', String(state.soundEnabled));
   });
 }
 
@@ -154,7 +193,7 @@ function notifyUser(title, body) {
 }
 
 function triggerAlarmEffect() {
-  playAlarmTone();
+  if (state.soundEnabled) playAlarmTone();
   if (navigator.vibrate) {
     navigator.vibrate([200, 100, 200]);
   }
